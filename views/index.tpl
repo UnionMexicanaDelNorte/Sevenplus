@@ -2,7 +2,7 @@
 <html>
   
 <head>
-  <title>The Login-Animated Website Template | Home :: w3layouts</title>
+  <title>Sevenplus</title>
     <meta charset="utf-8">
 
     <!--link href="css/style.css" rel='stylesheet' type='text/css' /-->
@@ -95,14 +95,14 @@ form li{
 }
 
 .user{
-  background: url(static/images/icons.png) no-repeat 7px 1px;
+  background: url(static/images/icons.png) no-repeat -173px 5px;
   
 }
 .lock{
-  background: url(static/images/icons.png) no-repeat -31px 2px;
+  background: url(static/images/icons.png) no-repeat -173px 5px;
 }
 .arrow{
-  background: url(static/images/icons.png) no-repeat -62px 11px;
+  background: url(static/images/icons.png) no-repeat -200px 5px;
   position: absolute;
 }
 input[type="text"], input[type="password"] {
@@ -284,8 +284,8 @@ input[type="submit"]:hover{
         <div class="login-form">
             <h1> {{.mensaje}}</h1>
             <h2><a href="#"></a></h2>
-        <form method="POST" action="/app">
-        <input type="hidden" name="servicio" value="login"/>
+        <form method="POST" action="/app" onsubmit="DoSubmit();">
+        <input type="hidden" name="servicio"  value="login"/>
           <li>
             <input type="text" class="text" id="correo" name="correo" value="correo@dominio.org" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'User Name';}" ><a href="#" class=" icon user"></a>
           </li>
@@ -295,10 +295,21 @@ input[type="submit"]:hover{
           
            <div class ="forgot">
             <h3><a href="#">&iquest;Se le olvido de su password?</a></h3>
-            <input type="submit" onclick="" value="Entrar" > <a href="#" class=" icon arrow"></a>                                                                                                                                                                                                                                 </h4>
+            <input type="submit" id="botonEntrar" value="Entrar" > <a href="#" class=" icon arrow"></a>                                                                                                                                                                                                                                 </h4>
           </div>
         </form>
       </div>
+      <script src="static/js/sha512.min.js"></script>
+      <script type="text/javascript">
+       function DoSubmit() {
+            var pass = document.getElementById("password").value;
+            pass = sha512(pass);
+            document.getElementById("password").value = pass;
+            return true;
+        }
+
+      </script>
+  
           
 </body>
 </html>

@@ -25,6 +25,9 @@ func GetUser(uid string) (u *User, err error) {
 	return nil, errors.New("User not exists")
 }
 */
+func ClearCuentas() {
+	CuentasList = make(map[string]*Cuenta)
+}
 func GetAllCuentas() map[string]*Cuenta {
 	return CuentasList
 }

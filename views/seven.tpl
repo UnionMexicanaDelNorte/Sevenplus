@@ -23,7 +23,7 @@
   <link href="static/css/icheck/flat/green.css" rel="stylesheet" />
   <link href="static/css/floatexamples.css" rel="stylesheet" type="text/css" />
 
-  <script src="static/js/jquery.min.js"></script>
+  <script src="static/js/jquery-2.2.4.min.js"></script>
   <script src="static/js/autocomplete/jquery.autocomplete.js"></script>
   
   <script src="static/js/nprogress.js"></script>
@@ -279,11 +279,39 @@
   <!-- pace -->
   <script src="static/js/pace/pace.min.js"></script>
   <script src="static/js/papaparse.min.js"></script>
+  <script src="static/js/sha512.min.js"></script>
     
 
   <!-- /dashbord linegraph -->
   <!-- datepicker -->
   <script type="text/javascript">
+  var xhrPool = [];
+  $(document).ajaxSend(function(e, jqXHR, options){
+    xhrPool.push(jqXHR);
+  });
+  $(document).ajaxComplete(function(e, jqXHR, options) {
+    xhrPool = $.grep(xhrPool, function(x){return x!=jqXHR});
+  });
+  var abort = function() {
+    $.each(xhrPool, function(idx, jqXHR) {
+      jqXHR.abort();
+    });
+  };
+
+  var oldbeforeunload = window.onbeforeunload;
+  window.onbeforeunload = function() {
+    var r = oldbeforeunload ? oldbeforeunload() : undefined;
+    if (r == undefined) {
+      // only cancel requests if there is no prompt to stay on the page
+      // if there is a prompt, it will likely give the requests enough time to finish
+      abort();
+    }
+    return r;
+  }
+
+
+
+
   var palabrasComunes = ["hello","dame","damela","hola",];
  function startDictation() {
   document.getElementById('transcript2').innerHTML='';
@@ -372,6 +400,209 @@
   $(document).on("change", "#cedulasSelect", function (){
     actualizaLineaCedulas();
   });
+  var theme = {
+          color: [
+              "#26B99A", "#34495E", "#BDC3C7", "#3498DB",
+              "#9B59B6", "#8abb6f", "#759c6a", "#bfd3b7"
+          ],
+          title: {
+              itemGap: 8,
+              textStyle: {
+                  fontWeight: "normal",
+                  color: "#408829"
+              }
+          },
+          dataRange: {
+              color: ["#1f610a", "#97b58d"]
+          },
+          toolbox: {
+              color: ["#408829", "#408829", "#408829", "#408829"]
+          },
+          tooltip: {
+              backgroundColor: "rgba(0,0,0,0.5)",
+              axisPointer: {
+                  type: "line",
+                  lineStyle: {
+                      color: "#408829",
+                      type: "dashed"
+                  },
+                  crossStyle: {
+                      color: "#408829"
+                  },
+                  shadowStyle: {
+                      color: "rgba(200,200,200,0.3)"
+                  }
+              }
+          },
+          dataZoom: {
+              dataBackgroundColor: '#eee',
+              fillerColor: "rgba(64,136,41,0.2)",
+              handleColor: "#408829"
+          },
+          grid: {
+              borderWidth: 0
+          },
+          categoryAxis: {
+              axisLine: {
+                  lineStyle: {
+                      color: "#408829"
+                  }
+              },
+              splitLine: {
+                  lineStyle: {
+                      color: ["#eee"]
+                  }
+              }
+          },
+          valueAxis: {
+              axisLine: {
+                  lineStyle: {
+                      color: "#408829"
+                  }
+              },
+              splitArea: {
+                  show: true,
+                  areaStyle: {
+                      color: ["rgba(250,250,250,0.1)", "rgba(200,200,200,0.1)"]
+                  }
+              },
+              splitLine: {
+                  lineStyle: {
+                      color: ["#eee"]
+                  }
+              }
+          },
+          timeline: {
+              lineStyle: {
+                  color: "#408829"
+              },
+              controlStyle: {
+                  normal: {color: "#408829"},
+                  emphasis: {color: "#408829"}
+              }
+          },
+          k: {
+              itemStyle: {
+                  normal: {
+                      color: "#68a54a",
+                      color0: "#a9cba2",
+                      lineStyle: {
+                          width: 1,
+                          color: "#408829",
+                          color0: "#86b379"
+                      }
+                  }
+              }
+          },
+          map: {
+              itemStyle: {
+                  normal: {
+                      areaStyle: {
+                          color: "#ddd"
+                      },
+                      label: {
+                          textStyle: {
+                              color: "#c12e34"
+                          }
+                      }
+                  },
+                  emphasis: {
+                      areaStyle: {
+                          color: "#99d2dd"
+                      },
+                      label: {
+                          textStyle: {
+                              color: "#c12e34"
+                          }
+                      }
+                  }
+              }
+          },
+          force: {
+              itemStyle: {
+                  normal: {
+                      linkStyle: {
+                          strokeColor: "#408829"
+                      }
+                  }
+              }
+          },
+          chord: {
+              padding: 4,
+              itemStyle: {
+                  normal: {
+                      lineStyle: {
+                          width: 1,
+                          color: "rgba(128, 128, 128, 0.5)"
+                      },
+                      chordStyle: {
+                          lineStyle: {
+                              width: 1,
+                              color: "rgba(128, 128, 128, 0.5)"
+                          }
+                      }
+                  },
+                  emphasis: {
+                      lineStyle: {
+                          width: 1,
+                          color: "rgba(128, 128, 128, 0.5)"
+                      },
+                      chordStyle: {
+                          lineStyle: {
+                              width: 1,
+                              color: "rgba(128, 128, 128, 0.5)"
+                          }
+                      }
+                  }
+              }
+          },
+          gauge: {
+              startAngle: 225,
+              endAngle: -45,
+              axisLine: {
+                  show: true,
+                  lineStyle: {
+                      color: [[0.2, "#86b379"], [0.8, "#68a54a"], [1, "#408829"]],
+                      width: 8
+                  }
+              },
+              axisTick: {
+                  splitNumber: 10,
+                  length: 12,
+                  lineStyle: {
+                      color: "auto"
+                  }
+              },
+              axisLabel: {
+                  textStyle: {
+                      color: "auto"
+                  }
+              },
+              splitLine: {
+                  length: 18,
+                  lineStyle: {
+                      color: "auto"
+                  }
+              },
+              pointer: {
+                  length: "90%",
+                  color: "auto"
+              },
+              title: {
+                  textStyle: {
+                      color: "#333"
+                  }
+              },
+              detail: {
+                  textStyle: {
+                      color: "auto"
+                  }
+              }
+          },
+          textStyle: {
+              fontFamily: "Arial, Verdana, sans-serif"
+          }
+      };
   
 
   $(document).on("change", "#tipoDeDiarioSelect", function (){
@@ -384,6 +615,11 @@
   $(document).on("change", "#cedulasSelectConceptos", function (){
     actualizaConceptosCedulas();
   });
+  
+  $(document).on("click", ".cancelaAjax", function (){
+    abort();
+  });
+
   $(document).on("click", "#generarDiarioEnExcel", function (){
     var diario = parseInt($("#diario").val());
     window.open(
@@ -1941,6 +2177,10 @@
       });*/
     }
   });
+    
+    $(document).on("change", "#tipoDeDiarioSelectDeCaptura", function (){
+      $("#referencia").select();
+      });
   $(document).on("click", "#guardarNuevaCedula", function (){
     var idCedula = $(this).attr("idCedula");
     var nombre = $("#nombre").val();
@@ -2509,6 +2749,65 @@ $(document).on("change", "#archivoCSV", function (){
 });
 
 
+$(document).on("change", "#fechaTrans", function (){
+  $("#cantidad").select();
+  $("#cantidad").focus();
+  $("#cantidad").click();
+});  
+
+
+  $(document).on("click", "#depre", function (){
+    var cad = '<div class="">'+
+          '<div class="page-title">'+
+            '<div class="title_left">'+
+              '<h3>Depreciaci&oacute;n de activos fijos</h3>'+
+            '</div>'+
+          '</div>'+
+          '<div class="clearfix"></div>'+
+          '<div class="row">'+
+            '<div class="col-md-12 col-sm-12 col-xs-12">'+
+              '<div class="x_panel">'+
+                '<div class="x_title">'+
+                  '<h2>Depreciaci&oacute;n <small></small></h2>'+
+                  '<ul class="nav navbar-right panel_toolbox">'+
+                    '<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>'+
+                    '</li>'+
+                    '<li><a class="close-link"><i class="fa fa-close"></i></a>'+
+                    '</li>'+
+                  '</ul>'+
+                  '<div class="clearfix"></div>'+
+                '</div>'+
+                '<div class="x_content">'+
+                  '<br />'+
+                    '<div class="form-group">'+
+                      '<div class="col-md-6 col-sm-6 col-xs-6 col-md-offset-6">'+
+                        '<button type="submit" id="depreciarTodaLaBanda"  class="btn btn-success">Depreciar todos</button>'+
+                      '</div>'+
+                    '</div>'+
+                '</div>'+
+                '<div class="clearfix"></div>'+
+                '<div class="col-md-12 col-sm-12 col-xs-12">'+
+                  '<div class="x_panel">'+
+                    '<div class="x_title">'+
+                      '<h2>Activos <small>fijos</small></h2>'+
+                      '<div class="clearfix"></div>'+
+                    '</div>'+
+                    '<div class="x_content">'+
+                      '<table class="table table-hover">'+
+                        '<thead><tr><th>C&oacute;digo</th><th>Nombre</th><th>Status</th><th>Status</th><th>Periodo inicial</th><th>Periodo final</th><th>&Uacute;ltimo periodo</th><th>Periodo disposal</th><th>Disposed</th><th>Cantidad inicial base</th><th>Cantidad depreciado base</th><th>Cantidad neta base</th><th>Porcentaje de depreciaci&oacute;n base</th><th>Cantidad inicial transacci&oacute;n</th><th>Cantidad depreciado transacci&oacute;n</th><th>Cantidad neta transacci&oacute;n</th><th>Porcentaje de depreciaci&oacute;n transacci&oacute;n</th></thead>'+
+                        '<tbody id="tablaActivosFijosDepre"></tbody>'+
+                      '</table>'+
+                    '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>';     
+      $("#mainContent").html(cad);
+      actualizaActivosFijos();
+ });
+
    $(document).on("click", "#modificarDimensiones", function (){
     var cad = '<div class="">'+
           '<div class="page-title">'+
@@ -2903,6 +3202,7 @@ function empiezaReferencia()
     $("#tipoDeDiarioSelectDeCaptura").attr("disabled","disabled");
     $("#infoLabel").html("D&eacute;bitos: "+format2(debitosReferencia,"$")+" Cr&eacute;ditos: "+format2(creditosReferencia,"$")+" Linea: "+lineaEnLaQueVoy);
     idTipoDeDiarioGlobal=$("#tipoDeDiarioSelectDeCaptura").val();
+    
     ponLineaSegunTipoDeDiario(idTipoDeDiarioGlobal , lineaEnLaQueVoy);
   }
 }
@@ -2962,53 +3262,58 @@ function ponDimensionesSegunCuenta()
         $("#ANAL_T7").val("");
         $("#ANAL_T8").val("");
         $("#ANAL_T9").val("");*/
-        var limite = 2;
-        if(resp.D0<limite)
+        var limite = resp.tipoDimension;
+        //1 obligatorio
+        //2 opcional
+        //3 prohibido (ninguno!)
+        //4 todos!
+        var prohibido=3;
+        if(resp.D0<=limite && limite != prohibido)
         {
           $("#divD0").css("display","block");
         }
         $("#ANAL_T0").attr("status",resp.D0);
-        if(resp.D1<limite)
+        if(resp.D1<=limite && limite != prohibido)
         {
           $("#divD1").css("display","block");
         }
         $("#ANAL_T1").attr("status",resp.D1);
-        if(resp.D2<limite)
+        if(resp.D2<=limite && limite != prohibido)
         {
           $("#divD2").css("display","block");          
         }
         $("#ANAL_T2").attr("status",resp.D2);
-        if(resp.D3<limite)
+        if(resp.D3<=limite && limite != prohibido)
         {
           $("#divD3").css("display","block");
         }
         $("#ANAL_T3").attr("status",resp.D3);
-        if(resp.D4<limite)
+        if(resp.D4<=limite && limite != prohibido)
         {
           $("#divD4").css("display","block");
         }
         $("#ANAL_T4").attr("status",resp.D4);
-        if(resp.D5<limite)
+        if(resp.D5<=limite && limite != prohibido)
         {
           $("#divD5").css("display","block");
         }
         $("#ANAL_T5").attr("status",resp.D5);
-        if(resp.D6<limite)
+        if(resp.D6<=limite && limite != prohibido)
         {
           $("#divD6").css("display","block");
         }
         $("#ANAL_T6").attr("status",resp.D6);
-        if(resp.D7<limite)
+        if(resp.D7<=limite && limite != prohibido)
         {
           $("#divD7").css("display","block");
         }
         $("#ANAL_T7").attr("status",resp.D7);
-        if(resp.D8<limite)
+        if(resp.D8<=limite && limite != prohibido)
         {
           $("#divD8").css("display","block");
         }
         $("#ANAL_T8").attr("status",resp.D8);
-        if(resp.D9<limite)
+        if(resp.D9<=limite && limite != prohibido)
         {
           $("#divD9").css("display","block");
         }
@@ -3033,11 +3338,15 @@ $(document).on("click", "#ok", function (){
   grabaLineaActual(0);
 });
 var idTipoDeDiarioGlobal;
+
+
+$(document).on("click", "#nuevaReferencia", function (){
+  grabaLineaActual(3);
+});
 $(document).on("click", "#contabilizar", function (){
   $("body").css("cursor","wait");
-   
   grabaLineaActual(2);
-   });
+});
 
 
 function grabaLineaActual(queHagoAlFinal)
@@ -3064,18 +3373,21 @@ function grabaLineaActual(queHagoAlFinal)
   if(cuenta=="")
   {
     $("#autocomplete-custom-append").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   var fechaTrans = $("#fechaTrans").val().trim();
   if(fechaTrans=="")
   {
     $("#fechaTrans").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   var descripcion = $("#descripcion").val().trim();
   if(descripcion=="")
   {
     $("#descripcion").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   var S0 = parseInt($("#ANAL_T0").attr("status"));
@@ -3102,51 +3414,61 @@ function grabaLineaActual(queHagoAlFinal)
   if(S0==obligatorio && ANAL_T0=="")
   {
     $("#ANAL_T0").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S1==obligatorio && ANAL_T1=="")
   {
     $("#ANAL_T1").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S2==obligatorio && ANAL_T2=="")
   {
     $("#ANAL_T2").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S3==obligatorio && ANAL_T3=="")
   {
     $("#ANAL_T3").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S4==obligatorio && ANAL_T4=="")
   {
     $("#ANAL_T4").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S5==obligatorio && ANAL_T5=="")
   {
     $("#ANAL_T5").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S6==obligatorio && ANAL_T6=="")
   {
     $("#ANAL_T6").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S7==obligatorio && ANAL_T7=="")
   {
     $("#ANAL_T7").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S8==obligatorio && ANAL_T8=="")
   {
     $("#ANAL_T8").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(S9==obligatorio && ANAL_T9=="")
   {
     $("#ANAL_T9").css("background-color","#FFFC00");
+    $("body").css("cursor","default");
     return;
   }
   if(ANAL_T0.indexOf('|')>-1)
@@ -3229,6 +3551,35 @@ function grabaLineaActual(queHagoAlFinal)
       {
         debitosReferencia=resp.debitos;
         creditosReferencia=resp.creditos;
+        if(queHagoAlFinal==3)//nueva referencia
+        {
+          lineaGlobal++;
+          lineaEnLaQueVoy=1;
+          referenciaActual="";
+          debitosReferencia=0;
+          creditosReferencia=0;
+          cuentaAnterior="";
+          $("#divDescr").css("display","none");
+          $("#divCantidad").css("display","none");
+          $("#cantidad").val("");
+          $("#divD_C").css("display","none");
+          $("#divCuenta").css("display","none");
+          $("#divFecha").css("display","none");
+          $("#divD0").css("display","none");
+          $("#divD1").css("display","none");
+          $("#divD2").css("display","none");
+          $("#divD3").css("display","none");
+          $("#divD4").css("display","none");
+          $("#divD5").css("display","none");
+          $("#divD6").css("display","none");
+          $("#divD7").css("display","none");
+          $("#divD8").css("display","none");
+          $("#divD9").css("display","none");
+       
+          //ponLineaSegunTipoDeDiario(idTipoDeDiarioGlobal, lineaEnLaQueVoy);
+          $("#referencia").removeAttr("disabled");
+          $("#referencia").select();
+        }
         if(queHagoAlFinal==1)
         {
           lineaGlobal++;
@@ -3260,6 +3611,7 @@ function grabaLineaActual(queHagoAlFinal)
                   "/generarDiario?diario=" + resp.diario,
                   '_blank'
                 );
+                empiezaCapturaDeDiarios();
               }
               if(resp.success==2)
               {   
@@ -3276,7 +3628,32 @@ function grabaLineaActual(queHagoAlFinal)
     }
   });
 }
-
+function actualizaActivosFijos()
+{
+  $.ajax({
+    url: "/dameActivosFijos",
+    dataType : "json",
+    type : "post",
+    async : true,
+    beforeSend : function (){
+    },
+    complete : function (){
+    }, 
+    success : function (resp){
+      if(resp.success==1)
+      {
+        var i;
+        var cad='';
+        var aver2 = Object.keys(resp.activos);
+        for(i=0;i<aver2.length;i++)
+        {
+          cad=cad+'<tr><td>'+resp.activos[aver2[i]]["ASSET_CODE"]+'</td><td>'+resp.activos[aver2[i]]["DESCR"]+'</td><td>'+resp.activos[aver2[i]]["STATUS"]+'</td><td>'+resp.activos[aver2[i]]["ASSET_STATUS"]+'</td><td>'+resp.activos[aver2[i]]["START_PERIOD"]+'</td><td>'+resp.activos[aver2[i]]["END_PERIOD"]+'</td><td>'+resp.activos[aver2[i]]["ULTIMO_PERIOD"]+'</td><td>'+resp.activos[aver2[i]]["DISPOSAL_PERIOD"]+'</td><td>'+resp.activos[aver2[i]]["DISPOSED"]+'</td><td>'+format2(resp.activos[aver2[i]]["BASE_GROSS"],"$")+'</td><td>'+format2(resp.activos[aver2[i]]["BASE_DEP"],"$")+'</td><td>'+format2(resp.activos[aver2[i]]["BASE_NET"],"$")+'</td><td>'+resp.activos[aver2[i]]["BASE_PCENT"]+'</td><td>'+format2(resp.activos[aver2[i]]["TXN_GROSS"],"$")+'</td><td>'+format2(resp.activos[aver2[i]]["TXN_DEP"],"$")+'</td><td>'+format2(resp.activos[aver2[i]]["TXN_NET"],"$")+'</td><td>'+resp.activos[aver2[i]]["TXN_PCENT"]+'</td></tr>';
+        } 
+        $("#tablaActivosFijosDepre").html(cad);
+      }
+    }
+  });
+}
 function ponLineaSegunTipoDeDiario(idTipoDeDiario, linea)
 {
   var param = {
@@ -3354,12 +3731,18 @@ function ponLineaSegunTipoDeDiario(idTipoDeDiario, linea)
           $("#ANAL_T9").val(resp.D9);
         }
         $("#divFecha").css("display","block");
+        if(linea==1)
+        {
+          $("#fechaTrans").click();
+        }
       }
     }
   });
 }
 var timestampActual;
-$(document).on("click", "#capturaDeDiarios", function (){
+function empiezaCapturaDeDiarios()
+{
+ 
   lineaEnLaQueVoy=1;
   referenciaActual="";
   debitosReferencia=0;
@@ -3424,7 +3807,7 @@ idTipoDeDiarioGlobal=-1;
                             '<div class="controls">'+
                               '<div class="col-md-11 xdisplay_inputx form-group has-feedback">'+
                                 '<input type="text" class="form-control has-feedback-left" id="fechaTrans" placeholder="Fecha de transaccion" aria-describedby="inputSuccess2Status">'+
-                                '<span class="fa fa-calendar-o form-control-feedback left" aria-hidden="true"></span>'+
+                                '<span class="fa fa-calendar-o form-control-feedback left" id="calendarioFecha" aria-hidden="true"></span>'+
                                 '<span id="inputSuccess2Status" class="sr-only">(success)</span>'+
                               '</div>'+
                             '</div>'+
@@ -3577,6 +3960,9 @@ idTipoDeDiarioGlobal=-1;
       });
 
       configInicialDeLineasDeCapturaDeDiario();
+}
+$(document).on("click", "#capturaDeDiarios", function (){
+  empiezaCapturaDeDiarios();
  });
 $(document).on("click", "#lineasTiposDeDiario", function (){
     var cad = '<div class="">'+
@@ -4263,6 +4649,292 @@ $(document).on("click", "#guardarClasificacionDimensiones", function (){
     }
   });  
 });
+
+var contains = function(needle) {
+    // Per spec, the way to identify NaN is that it is not equal to itself
+    var findNaN = needle !== needle;
+    var indexOf;
+
+    if(!findNaN && typeof Array.prototype.indexOf === 'function') {
+        indexOf = Array.prototype.indexOf;
+    } else {
+        indexOf = function(needle) {
+            var i = -1, index = -1;
+
+            for(i = 0; i < this.length; i++) {
+                var item = this[i];
+
+                if((findNaN && item !== item) || item === needle) {
+                    index = i;
+                    break;
+                }
+            }
+
+            return index;
+        };
+    }
+
+    return indexOf.call(this, needle) > -1;
+};
+
+
+$(document).on("click", "#generarReporteDeMAT", function (){
+  var delPeriodo = $("#delPeriodo").val();
+  var alPeriodo = $("#alPeriodo").val();
+
+  var param = {delPeriodo : delPeriodo, alPeriodo : alPeriodo}
+  $.ajax({
+    url: "/generarReporteDeMAT",
+    dataType : "json",
+    type : "post",
+    data: param,
+    async : true,
+    beforeSend : function (){
+    },
+    complete : function (){
+    }, 
+    success : function (resp){
+      if(resp.success==1)
+      {
+        Chart.defaults.global.legend = {
+          enabled: true
+        };
+         Chart.defaults.global.title = {
+          enabled: true
+        };
+        var iglesias = Object.keys(resp.diezmos);
+        var cuentas = Object.keys(resp.cuentas);
+        var periodos = Object.keys(resp.periodos);
+        var iglesiasArray = new Array();
+        var i, j, k;
+        var height = 27 * iglesias.length;
+        for(i=0;i<iglesias.length;i++)
+        {
+          iglesiasArray.push(resp.diezmos[iglesias[i]].Nombre);
+        }
+        var cadJS='<script type="text/javascript">';
+        for(i=0;i<cuentas.length;i++)
+        {
+          var cuenta = resp.cuentas[cuentas[i]].ACNT_CODE;
+          var ncuenta = resp.cuentas[cuentas[i]].DESCR;
+          /*for(j=0;j<periodos.length;j++) 
+          {
+            var PERIOD = periodos[j];*/
+            var datos = new Array();
+            for(k=0;k<iglesias.length;k++)  
+            {
+              var valor = 0;
+              //var PERIODOS = Object.keys();
+              for(j=0;j<periodos.length;j++) 
+              {
+                var PERIOD = periodos[j];
+                if(PERIOD in resp.diezmos[iglesias[k]].PeriodosList)
+                {
+                  if(cuenta in resp.diezmos[iglesias[k]].PeriodosList[PERIOD].CuentasList)
+                  {
+                    valor += resp.diezmos[iglesias[k]].PeriodosList[PERIOD].CuentasList[cuenta].Saldo;
+                  } 
+                }
+              }
+              if(valor!=0)
+              {
+                valor = Math.round(valor * 100) / 100  
+              }
+              datos.push(valor);
+            }
+            var cad = '<div class="col-md-12 col-sm-12 col-xs-12">'+
+                '<div class="x_panel">'+
+                  '<div class="x_title">'+
+                    '<h2>'+ncuenta+' '+delPeriodo+' al '+alPeriodo+'<small>Personas</small></h2>'+
+                    '<div class="clearfix"></div>'+
+                  '</div>'+
+                  '<div class="x_content">'+
+                    '<div id="echart_bar_horizontal'+cuenta+'" style="height: '+height+'px; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; position: relative; background-color: transparent;"><div style="position: relative; overflow: hidden; width: 245px; height: '+height+'px; cursor: default;"><canvas width="490" height="'+(height+370)+'" data-zr-dom-id="zr_0" style="position: absolute; left: 0px; top: 0px; width: 245px; height: '+height+'px; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></canvas></div><div style="position: absolute; display: none; border: 0px solid rgb(51, 51, 51); white-space: nowrap; z-index: 9999999; transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1), top 0.4s cubic-bezier(0.23, 1, 0.32, 1); border-radius: 4px; color: rgb(255, 255, 255); font-style: normal; font-variant: normal; font-weight: normal; font-stretch: normal; font-size: 14px; font-family: Arial, Verdana, sans-serif; line-height: 21px; padding: 5px; left: 46px; top: 184.167px; background-color: rgba(0, 0, 0, 0.498039);">Apr<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:#26B99A"></span>2015 : 104,970<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:#34495E"></span>2016 : 121,594</div></div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+          $("#graficas").append(cad);
+
+
+           var echartBar = echarts.init(document.getElementById('echart_bar_horizontal'+cuenta), theme);
+            echartBar.setOption({
+              title: {
+                text: ncuenta,
+                subtext: cuenta
+              },
+              tooltip: {
+                trigger: 'axis'
+              },
+              legend: {
+                x: 100,
+                data: [ncuenta]
+              },
+              toolbox: {
+                show: true,
+                feature: {
+                  saveAsImage: {
+                    show: true,
+                    title: "Save Image"
+                  }
+                }
+              },
+              calculable: true,
+              xAxis: [{
+                type: 'value',
+                boundaryGap: [0, 0.01]
+              }],
+              yAxis: [{
+                type: 'category',
+                data: iglesiasArray
+              }],
+              series: [{
+                name: ncuenta,
+                type: 'bar',
+                data: datos
+              }]
+            });
+         // }//for J
+         }// for I
+        //cadJS = cadJS + '<\/script>';
+        //$("#graficasJS").html(cadJS);
+      }
+       if(resp.success==0)
+      {
+        alert("Hubo un error, perdon");
+      }
+    }
+  });  
+});
+$(document).on("click", "#generarReporteDeIglesias", function (){
+  var delPeriodo = $("#delPeriodo").val();
+  var alPeriodo = $("#alPeriodo").val();
+
+  var param = {delPeriodo : delPeriodo, alPeriodo : alPeriodo}
+  $.ajax({
+    url: "/generarReporteDeIglesias",
+    dataType : "json",
+    type : "post",
+    data: param,
+    async : true,
+    beforeSend : function (){
+    },
+    complete : function (){
+    }, 
+    success : function (resp){
+      if(resp.success==1)
+      {
+        Chart.defaults.global.legend = {
+          enabled: true
+        };
+         Chart.defaults.global.title = {
+          enabled: true
+        };
+        var iglesias = Object.keys(resp.diezmos);
+        var cuentas = Object.keys(resp.cuentas);
+        var periodos = Object.keys(resp.periodos);
+        var iglesiasArray = new Array();
+        var i, j, k;
+        var height = 27 * iglesias.length;
+        for(i=0;i<iglesias.length;i++)
+        {
+          iglesiasArray.push(resp.diezmos[iglesias[i]].Nombre);
+        }
+        var cadJS='<script type="text/javascript">';
+        for(i=0;i<cuentas.length;i++)
+        {
+          var cuenta = resp.cuentas[cuentas[i]].ACNT_CODE;
+          var ncuenta = resp.cuentas[cuentas[i]].DESCR;
+          /*for(j=0;j<periodos.length;j++) 
+          {
+            var PERIOD = periodos[j];*/
+            var datos = new Array();
+            for(k=0;k<iglesias.length;k++)  
+            {
+              var valor = 0;
+              //var PERIODOS = Object.keys();
+              for(j=0;j<periodos.length;j++) 
+              {
+                var PERIOD = periodos[j];
+                if(PERIOD in resp.diezmos[iglesias[k]].PeriodosList)
+                {
+                  if(cuenta in resp.diezmos[iglesias[k]].PeriodosList[PERIOD].CuentasList)
+                  {
+                    valor += resp.diezmos[iglesias[k]].PeriodosList[PERIOD].CuentasList[cuenta].Saldo;
+                  } 
+                }
+              }
+              if(valor!=0)
+              {
+                valor = Math.round(valor * 100) / 100  
+              }
+              datos.push(valor);
+            }
+            var cad = '<div class="col-md-12 col-sm-12 col-xs-12">'+
+                '<div class="x_panel">'+
+                  '<div class="x_title">'+
+                    '<h2>'+ncuenta+' '+delPeriodo+' al '+alPeriodo+'<small>Iglesias</small></h2>'+
+                    '<div class="clearfix"></div>'+
+                  '</div>'+
+                  '<div class="x_content">'+
+                    '<div id="echart_bar_horizontal'+cuenta+'" style="height: '+height+'px; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; position: relative; background-color: transparent;"><div style="position: relative; overflow: hidden; width: 245px; height: '+height+'px; cursor: default;"><canvas width="490" height="'+(height+370)+'" data-zr-dom-id="zr_0" style="position: absolute; left: 0px; top: 0px; width: 245px; height: '+height+'px; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></canvas></div><div style="position: absolute; display: none; border: 0px solid rgb(51, 51, 51); white-space: nowrap; z-index: 9999999; transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1), top 0.4s cubic-bezier(0.23, 1, 0.32, 1); border-radius: 4px; color: rgb(255, 255, 255); font-style: normal; font-variant: normal; font-weight: normal; font-stretch: normal; font-size: 14px; font-family: Arial, Verdana, sans-serif; line-height: 21px; padding: 5px; left: 46px; top: 184.167px; background-color: rgba(0, 0, 0, 0.498039);">Apr<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:#26B99A"></span>2015 : 104,970<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:#34495E"></span>2016 : 121,594</div></div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+          $("#graficas").append(cad);
+
+
+           var echartBar = echarts.init(document.getElementById('echart_bar_horizontal'+cuenta), theme);
+            echartBar.setOption({
+              title: {
+                text: ncuenta,
+                subtext: cuenta
+              },
+              tooltip: {
+                trigger: 'axis'
+              },
+              legend: {
+                x: 100,
+                data: [ncuenta]
+              },
+              toolbox: {
+                show: true,
+                feature: {
+                  saveAsImage: {
+                    show: true,
+                    title: "Save Image"
+                  }
+                }
+              },
+              calculable: true,
+              xAxis: [{
+                type: 'value',
+                boundaryGap: [0, 0.01]
+              }],
+              yAxis: [{
+                type: 'category',
+                data: iglesiasArray
+              }],
+              series: [{
+                name: ncuenta,
+                type: 'bar',
+                data: datos
+              }]
+            });
+         // }//for J
+         }// for I
+        //cadJS = cadJS + '<\/script>';
+        //$("#graficasJS").html(cadJS);
+      }
+       if(resp.success==0)
+      {
+        alert("Hubo un error, perdon");
+      }
+    }
+  });  
+});
+
    $(document).on("click", "#generarBUNIT", function (){
     var BUNIT = $("#BUNIT").val();
     var cuadre = $("#cuadre").val();
@@ -4310,6 +4982,32 @@ $(document).on("click", "#guardarClasificacionDimensiones", function (){
     
   });
    
+var Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9+/=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/rn/g,"n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+
+$(document).on("click", "#guardarConfigOpciones", function (){
+    var tipoDimension = $("#selectTipoD").val();
+    var Empresa = $("#Empresa").val().trim();
+    var pass = Base64.encode($("#passwordDeSAT").val());
+    var param = {pass : pass, Empresa : Empresa, tipoDimension : tipoDimension}
+    $.ajax({
+      url: "/guardarConfigOpciones",
+      dataType : "json",
+      type : "post",
+      data: param,
+      async : true,
+      beforeSend : function (){
+      },
+      complete : function (){
+      }, 
+      success : function (resp){
+        if(resp.success==1)
+        {
+          alert("Cambios guardados!");
+        }
+      }
+    });  
+  });
+   
    $(document).on("click", "#guardarBUNIT", function (){
     var BUNIT = $("#selectBUNIT").val();
     var param = {BUNIT : BUNIT}
@@ -4320,7 +5018,6 @@ $(document).on("click", "#guardarClasificacionDimensiones", function (){
       data: param,
       async : true,
       beforeSend : function (){
-  //      myMsgSpinner = msgSpinner("Obteniendo la informacion...");
       },
       complete : function (){
       }, 
@@ -4333,6 +5030,78 @@ $(document).on("click", "#guardarClasificacionDimensiones", function (){
       }
     });  
   });
+   
+
+$(document).on("click", "#configOpciones", function (){
+  $.ajax({
+    url: "/configOpciones",
+    dataType : "json",
+    type : "post",
+    async : true,
+    beforeSend : function (){
+//      myMsgSpinner = msgSpinner("Obteniendo la informacion...");
+    },
+    complete : function (){
+    }, 
+    success : function (resp){
+      var cad = '<div class="">'+
+          '<div class="page-title">'+
+            '<div class="title_left">'+
+              '<h3>Opciones de la unidad de negocio</h3>'+
+            '</div>'+
+          '</div>'+
+          '<div class="clearfix"></div>'+
+          '<div class="row">'+
+            '<div class="col-md-12 col-sm-12 col-xs-12">'+
+              '<div class="x_panel">'+
+                '<div class="x_title">'+
+                  '<h2>Opciones de la unidad de negocio <small></small></h2>'+
+                  '<ul class="nav navbar-right panel_toolbox">'+
+                    '<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>'+
+                    '</li>'+
+                    '<li><a class="close-link"><i class="fa fa-close"></i></a>'+
+                    '</li>'+
+                  '</ul>'+
+                  '<div class="clearfix"></div>'+
+                '</div>'+
+                '<div class="x_content">'+
+                  '<br />'+
+                    '<div class="form-group">'+
+                      '<label class="control-label col-md-3 col-sm-3 col-xs-12">Nombre de la empresa: (carpeta en C:/Compacw/Empresas/)</label><span class="required">*</span>'+
+                      '<div class="col-md-9 col-sm-9 col-xs-12">'+
+                        '<input type="text" maxlength="50" name="Empresa" id="Empresa" class="form-control col-md-10" style="float: left;" value="'+resp.Empresa+'" />'+
+                      '</div>'+
+                    '</div>'+
+                    '<div class="form-group">'+
+                      '<label class="control-label col-md-3 col-sm-3 col-xs-12">Password de : (carpeta en C:/Compacw/Empresas/)</label><span class="required">*</span>'+
+                      '<div class="col-md-9 col-sm-9 col-xs-12">'+
+                        '<input type="text" maxlength="100" id="passwordDeSAT" class="form-control col-md-10" style="float: left;" value="'+Base64.decode(resp.pass)+'" />'+
+                      '</div>'+
+                    '</div>'+
+                     '<div class="form-group">'+
+                      '<p><label for="selectTipoD">Seleccionar uso de unidades de negocio:</label>'+
+                          '<select id="selectTipoD" class="form-control" required="" >'+
+                            '<option value="1">Las obligatorias</option>'+
+                            '<option value="2">Las opcionales y las obligatorias</option>'+
+                            '<option value="3">Ninguna</option>'+
+                            '<option value="4">Todas</option>'+
+                          '</select></p>'+
+                    '</div>'+
+                    '<div class="form-group">'+
+                      '<div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">'+
+                        '<button type="submit" id="guardarConfigOpciones" class="btn btn-success">Guardar</button>'+
+                      '</div>'+
+                    '</div>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
+         $("#mainContent").html(cad);
+      $('#selectTipoD option[value="'+resp.tipoDimension+'"]').attr('selected', 'selected');
+    }});  
+  });
+
 $(document).on("click", "#cambiarUnidadDeNegocio", function (){
   $.ajax({
     url: "/cambiarUnidadDeNegocio",
@@ -4395,6 +5164,150 @@ $(document).on("click", "#cambiarUnidadDeNegocio", function (){
     }});  
   });
 
+
+
+$(document).on("click", "#iglesiasReporte", function (){
+ 
+      var cad = '<div class="">'+
+          '<div class="page-title">'+
+            '<div class="title_left">'+
+              '<h3>Diezmos de iglesias</h3>'+
+            '</div>'+
+          '</div>'+
+          '<div class="clearfix"></div>'+
+          '<div class="row">'+
+            '<div class="col-md-12 col-sm-12 col-xs-12">'+
+              '<div class="x_panel">'+
+                '<div class="x_title">'+
+                  '<h2>Diezmos de iglesias<small></small></h2>'+
+                  '<ul class="nav navbar-right panel_toolbox">'+
+                    '<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>'+
+                    '</li>'+
+                    '<li><a class="close-link"><i class="fa fa-close"></i></a>'+
+                    '</li>'+
+                  '</ul>'+
+                  '<div class="clearfix"></div>'+
+                '</div>'+
+                '<div class="x_content">'+
+                  '<br />'+
+                  '<div class="form-group">'+
+                      '<p><label for="delPeriodo">Del periodo:</label>'+
+                          '<select id="delPeriodo" class="form-control" required="" >'+
+                            '</select></p>'+
+                    '</div>'+
+                    '<div class="form-group">'+
+                      '<p><label for="alPeriodo">Al periodo:</label>'+
+                          '<select id="alPeriodo" class="form-control" required="">'+
+                            '</select></p>'+
+                    '</div>'+
+                    '<div class="form-group">'+
+                      '<div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">'+
+                        '<button type="submit" id="generarReporteDeIglesias" class="btn btn-success">Generar</button>'+
+                      '</div>'+
+                    '</div>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="clearfix"></div>'+
+          '<div class="row" id="graficas"></div>'+
+          '<div stye="display:none" id="graficasJS"></div>'+
+        '</div>';
+      $("#mainContent").html(cad);
+      $.ajax({
+        url: "/estadosDeCuenta",
+        dataType : "json",
+        type : "post",
+        async : true,
+        beforeSend : function (){
+        },
+        complete : function (){
+        }, 
+        success : function (resp){
+          var aver2 = Object.keys(resp.periodos);
+          cad = '';
+          for(i=0;i<aver2.length;i++)
+          {
+            cad=cad+'<option value="'+aver2[i].toString().trim()+'">'+aver2[i].toString().trim()+'</option>';
+          } 
+          $("#delPeriodo").html(cad);
+          $("#alPeriodo").html(cad);
+          $("#alPeriodo option:last").attr("selected","selected");
+        }
+      });
+  });
+
+
+$(document).on("click", "#gastosPersonasReporte", function (){
+ 
+      var cad = '<div class="">'+
+          '<div class="page-title">'+
+            '<div class="title_left">'+
+              '<h3>Gastos de Ministros/Asociados</h3>'+
+            '</div>'+
+          '</div>'+
+          '<div class="clearfix"></div>'+
+          '<div class="row">'+
+            '<div class="col-md-12 col-sm-12 col-xs-12">'+
+              '<div class="x_panel">'+
+                '<div class="x_title">'+
+                  '<h2>Gastos de Ministros/Asociados<small></small></h2>'+
+                  '<ul class="nav navbar-right panel_toolbox">'+
+                    '<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>'+
+                    '</li>'+
+                    '<li><a class="close-link"><i class="fa fa-close"></i></a>'+
+                    '</li>'+
+                  '</ul>'+
+                  '<div class="clearfix"></div>'+
+                '</div>'+
+                '<div class="x_content">'+
+                  '<br />'+
+                  '<div class="form-group">'+
+                      '<p><label for="delPeriodo">Del periodo:</label>'+
+                          '<select id="delPeriodo" class="form-control" required="" >'+
+                            '</select></p>'+
+                    '</div>'+
+                    '<div class="form-group">'+
+                      '<p><label for="alPeriodo">Al periodo:</label>'+
+                          '<select id="alPeriodo" class="form-control" required="">'+
+                            '</select></p>'+
+                    '</div>'+
+                    '<div class="form-group">'+
+                      '<div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">'+
+                        '<button type="submit" id="generarReporteDeMAT" class="btn btn-success">Generar</button>'+
+                      '</div>'+
+                    '</div>'+
+                '</div>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="clearfix"></div>'+
+          '<div class="row" id="graficas"></div>'+
+          '<div stye="display:none" id="graficasJS"></div>'+
+        '</div>';
+      $("#mainContent").html(cad);
+      $.ajax({
+        url: "/estadosDeCuenta",
+        dataType : "json",
+        type : "post",
+        async : true,
+        beforeSend : function (){
+        },
+        complete : function (){
+        }, 
+        success : function (resp){
+          var aver2 = Object.keys(resp.periodos);
+          cad = '';
+          for(i=0;i<aver2.length;i++)
+          {
+            cad=cad+'<option value="'+aver2[i].toString().trim()+'">'+aver2[i].toString().trim()+'</option>';
+          } 
+          $("#delPeriodo").html(cad);
+          $("#alPeriodo").html(cad);
+          $("#alPeriodo option:last").attr("selected","selected");
+        }
+      });
+  });
 
 $(document).on("click", "#crearUnidadDeNegocio", function (){
  
@@ -4477,14 +5390,13 @@ $(document).on("change", ".selectEmpiezaDimension", function (){
   var nombreEnd = "ANAL_T"+dimen+"_END";
   $("#"+nombreEnd).val(thisValue);
 });
-  $(document).on("click", "#estadosDeCuenta", function (){
+$(document).on("click", "#estadosDeCuenta", function (){
   $.ajax({
     url: "/estadosDeCuenta",
     dataType : "json",
     type : "post",
     async : true,
     beforeSend : function (){
-//      myMsgSpinner = msgSpinner("Obteniendo la informacion...");
     },
     complete : function (){
     }, 
@@ -4956,6 +5868,554 @@ setTimeout(function(){
 
     }
   //  veAVerBancos();
+  function requestCampo(resp2)
+  {
+     if(resp2.success==1)
+                {
+                  var t1 = Date.now()+parseInt(resp2.idCampo);
+                  var t2 = t1+1; 
+                  var cadGlobal='';
+
+                   cadGlobal=cadGlobal+' <div class="row">\
+          <div class="col-md-12 col-sm-12 col-xs-12">\
+                <div class="x_panel">\
+                  <div class="x_title">\
+                    <h2>'+resp2.nombre+'</h2>\
+                    <ul class="nav navbar-right panel_toolbox">\
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>\
+                      </li>\
+                      <li class="dropdown">\
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>\
+                        <ul class="dropdown-menu" role="menu">\
+                          <li><a href="#">Settings 1</a>\
+                          </li>\
+                          <li><a href="#">Settings 2</a>\
+                          </li>\
+                        </ul>\
+                      </li>\
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>\
+                      </li>\
+                    </ul>\
+                    <div class="clearfix"></div>\
+                  </div>\
+                  <div class="x_content">\
+                    <form class="form-horizontal form-label-left">\
+                      <div class="form-group">\
+                        <label class="control-label col-md-12 col-sm-12 col-xs-12" style="text-align: center;font-size: 40px;">'+resp2.nombre+'</label>\
+                      </div>\
+                    </form>\
+                    </div>\
+                  </div>\
+                </div>\
+              </div>\
+          </div>\
+          <div class="clearfix"></div>\
+          <div class="row">\
+          <div class="col-md-4 col-sm-4 col-xs-12">\
+                <div class="x_panel">\
+                  <div class="x_title">\
+                    <h2>Capital operativo</h2>\
+                    <ul class="nav navbar-right panel_toolbox">\
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>\
+                      </li>\
+                      <li class="dropdown">\
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>\
+                        <ul class="dropdown-menu" role="menu">\
+                          <li><a href="#">Settings 1</a>\
+                          </li>\
+                          <li><a href="#">Settings 2</a>\
+                          </li>\
+                        </ul>\
+                      </li>\
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>\
+                      </li>\
+                    </ul>\
+                    <div class="clearfix"></div>\
+                  </div>\
+                  <div class="x_content">\
+                    <div id="echart_guage'+resp2.idCampo+'" style="height: 370px; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; position: relative; background-color: transparent;" ><div style="position: relative; overflow: hidden; width: 269px; height: 370px; cursor: default;"><canvas width="538" height="740" data-zr-dom-id="zr_0" style="position: absolute; left: 0px; top: 0px; width: 269px; height: 370px; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></canvas></div><div style="position: absolute; display: none; border: 0px solid rgb(51, 51, 51); white-space: nowrap; z-index: 9999999; transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1), top 0.4s cubic-bezier(0.23, 1, 0.32, 1); border-radius: 4px; color: rgb(255, 255, 255); font-style: normal; font-variant: normal; font-weight: normal; font-stretch: normal; font-size: 14px; font-family: Arial, Verdana, sans-serif; line-height: 21px; padding: 5px; left: 28.3438px; top: 208px; background-color: rgba(0, 0, 0, 0.498039);">Performance <br>Performance : 50%</div></div>\
+                  </div>\
+                </div>\
+              </div>\
+              <div class="col-md-8 col-sm-8 col-xs-12">\
+                <div class="x_panel">\
+                  <div class="x_title">\
+                    <h2>Calculado al periodo: <small>'+resp2.periodoAnterior+' </small></h2>\
+                    <ul class="nav navbar-right panel_toolbox">\
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>\
+                      </li>\
+                      <li class="dropdown">\
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>\
+                        <ul class="dropdown-menu" role="menu">\
+                          <li><a href="#">Settings 1</a>\
+                          </li>\
+                          <li><a href="#">Settings 2</a>\
+                          </li>\
+                        </ul>\
+                      </li>\
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>\
+                      </li>\
+                    </ul>\
+                    <div class="clearfix"></div>\
+                  </div>\
+                  <div class="x_content">\
+                    <table class="table table-striped">\
+                      <thead>\
+                        <tr>\
+                          <th>Concepto</th>\
+                          <th>Monto</th>\
+                        </tr>\
+                      </thead>\
+                      <tbody id="tablaCapitalOperativo'+resp2.idCampo+'">';
+                        cadGlobal = cadGlobal+ '<tr><td><a href="#" busqueda="\'1\'" tipo="1" class="veDetalle">Activos corrientes</a></td><td>'+format2(resp2.corrientesActivos,"$")+'</td></tr>';
+                        cadGlobal=cadGlobal + '<tr><td><a href="#" busqueda="\'3\'" tipo="2" class="veDetalle">Pasivos corrientes</td><td>'+format2(resp2.corrientesPasivos,"$")+'</a></td></tr>';
+                        var capitalTrabajoActual = resp2.corrientesActivos - resp2.corrientesPasivos;
+                        cadGlobal=cadGlobal + '<tr><td>Capital de trabajo actual</td><td>'+format2(capitalTrabajoActual,"$")+'</td></tr>';
+                        cadGlobal=cadGlobal + '<tr><td colspan="2">Capital de trabajo recomendado por el reglamento</td></tr>';
+                        var gastosOperativos = resp2.gastosOperativos;
+                        cadGlobal=cadGlobal + '<tr><td><a href="#" busqueda="\'8\',\'9\'" tipo="3" class="veDetalle">'+(resp2.pcent*100) +'% de los gastos operativos</td><td>'+format2(gastosOperativos,"$")+'</a></td></tr>';            
+                        cadGlobal=cadGlobal + '<tr><td><a href="#" busqueda="\'2\'" tipo="4" class="veDetalle">Saldo fondos asignados</td><td>'+format2(resp2.activosNetosAsignados,"$")+'</a></td></tr>';
+                        var capitalDeTrabajoRecomendado = gastosOperativos+resp2.activosNetosAsignados;
+                        cadGlobal=cadGlobal + '<tr><td>Capital de trabajo recomendado</td><td>'+format2(capitalDeTrabajoRecomendado,"$")+'</td></tr>';
+                        var excedenteODeficit = capitalTrabajoActual - capitalDeTrabajoRecomendado;
+                        cadGlobal=cadGlobal + '<tr><td>Excedente (D&eacute;ficit) de real sobre recomendado</td><td>'+format2(excedenteODeficit,"$")+'</td></tr>';
+                        var porcentaje = (capitalTrabajoActual/capitalDeTrabajoRecomendado)*100;
+                        porcentaje = Math.round(porcentaje * 100) / 100;
+                         cadGlobal=cadGlobal + '<tr><td>Porcentaje</td><td>'+porcentaje+' %</td></tr>';
+                      cadGlobal=cadGlobal+'</tbody>\
+                    </table>\
+                  </div>\
+                </div>\
+              </div>\
+              </div>\
+              <div class="clearfix"></div>\
+               <div class="row">\
+              <div class="col-md-4 col-sm-4 col-xs-12">\
+                <div class="x_panel">\
+                  <div class="x_title">\
+                    <h2>Liquidez</h2>\
+                    <ul class="nav navbar-right panel_toolbox">\
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>\
+                      </li>\
+                      <li class="dropdown">\
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>\
+                        <ul class="dropdown-menu" role="menu">\
+                          <li><a href="#">Settings 1</a>\
+                          </li>\
+                          <li><a href="#">Settings 2</a>\
+                          </li>\
+                        </ul>\
+                      </li>\
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>\
+                      </li>\
+                    </ul>\
+                    <div class="clearfix"></div>\
+                  </div>\
+                  <div class="x_content">\
+                    <div id="liquidez_chart'+resp2.idCampo+'" style="height: 370px; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; position: relative; background-color: transparent;"><div style="position: relative; overflow: hidden; width: 269px; height: 370px; cursor: default;"><canvas width="538" height="740" data-zr-dom-id="zr_0" style="position: absolute; left: 0px; top: 0px; width: 269px; height: 370px; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></canvas></div><div style="position: absolute; display: none; border: 0px solid rgb(51, 51, 51); white-space: nowrap; z-index: 9999999; transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1), top 0.4s cubic-bezier(0.23, 1, 0.32, 1); border-radius: 4px; color: rgb(255, 255, 255); font-style: normal; font-variant: normal; font-weight: normal; font-stretch: normal; font-size: 14px; font-family: Arial, Verdana, sans-serif; line-height: 21px; padding: 5px; left: 28.3438px; top: 208px; background-color: rgba(0, 0, 0, 0.498039);">Performance <br>Performance : 50%</div></div>\
+                  </div>\
+                </div>\
+              </div>\
+              <div class="col-md-8 col-sm-8 col-xs-12">\
+                <div class="x_panel">\
+                  <div class="x_title">\
+                    <h2>Calculado al periodo: <small>'+resp2.periodoAnterior+' </small></h2>\
+                    <ul class="nav navbar-right panel_toolbox">\
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>\
+                      </li>\
+                      <li class="dropdown">\
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>\
+                        <ul class="dropdown-menu" role="menu">\
+                          <li><a href="#">Settings 1</a>\
+                          </li>\
+                          <li><a href="#">Settings 2</a>\
+                          </li>\
+                        </ul>\
+                      </li>\
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>\
+                      </li>\
+                    </ul>\
+                    <div class="clearfix"></div>\
+                  </div>\
+                  <div class="x_content">\
+                    <table class="table table-striped">\
+                      <thead>\
+                        <tr>\
+                          <th>Concepto</th>\
+                          <th>Monto</th>\
+                        </tr>\
+                      </thead>\
+                      <tbody id="tablaLiquidez'+resp2.idCampo+'">';
+                        cadGlobal = cadGlobal+ '<tr><td><a href="#" busqueda="\'1\'" tipo="5" class="veDetalle">Efectivo</a></td><td>'+format2(resp2.efectivo,"$")+'</td></tr>';
+                       cadGlobal=cadGlobal + '<tr><td><a href="#" busqueda="\'3\'" tipo="6" class="veDetalle">Inversiones</td><td>'+format2(resp2.inversiones,"$")+'</a></td></tr>';
+                       cadGlobal=cadGlobal + '<tr><td><a href="#" busqueda="\'3\'" tipo="7" class="veDetalle">Cuentas x cobrar a org. superiores</td><td>'+format2(resp2.cuentaCobrarOrgSuperior,"$")+'</a></td></tr>';
+                       var totalDeActivosLiquidos = parseFloat(resp2.efectivo) + parseFloat(resp2.inversiones) + parseFloat(resp2.cuentaCobrarOrgSuperior);
+                        cadGlobal=cadGlobal + '<tr><td>Total de activos liquidos</td><td>'+format2(totalDeActivosLiquidos,"$")+'</td></tr>';
+                        cadGlobal=cadGlobal + '<tr><td colspan="2">Menos compromisos</td></tr>';
+                        cadGlobal=cadGlobal + '<tr><td><a href="#" busqueda="\'3\'" tipo="2" class="veDetalle">Pasivos corrientes</td><td>'+format2(resp2.corrientesPasivos,"$")+'</a></td></tr>';
+                        cacadGlobald=cadGlobal + '<tr><td><a href="#" busqueda="\'2\'" tipo="4" class="veDetalle">Saldo fondos asignados</td><td>'+format2(resp2.activosNetosAsignados,"$")+'</a></td></tr>';
+                        var totalDeCompromisos = resp2.activosNetosAsignados + resp2.corrientesPasivos;
+                        cadGlobal=cadGlobal + '<tr><td>Total de compromisos</td><td>'+format2(totalDeCompromisos,"$")+'</td></tr>';
+                        var activosLiquidosNetos = totalDeActivosLiquidos - totalDeCompromisos;
+                        var porcentajeLiquidez = (totalDeActivosLiquidos/totalDeCompromisos)*100;
+                        porcentajeLiquidez = Math.round(porcentajeLiquidez * 100) / 100;
+                      cadGlobal=cadGlobal + '<tr><td>Porcentaje</td><td>'+porcentajeLiquidez+' %</td></tr>';
+                      cadGlobal=cadGlobal+'</tbody>\
+                    </table>\
+                  </div>\
+                </div>\
+              </div>';
+           //   console.log(resp.idCampo+" "+porcentaje+" "+porcentajeLiquidez);
+              
+                $("#contenidoOtrosCampos").append(cadGlobal);  
+              
+              
+             
+      var echartGauge = echarts.init(document.getElementById("echart_guage"+resp2.idCampo), theme);
+      echartGauge.setOption({
+        tooltip: {
+          formatter: "{a} <br/>{b} : {c}%"
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            restore: {
+              show: true,
+              title: "Restore"
+            },
+            saveAsImage: {
+              show: true,
+              title: "Save Image"
+            }
+          }
+        },
+        series: [{
+          name: "Capital Operativo",
+          type: "gauge",
+          center: ["50%", "50%"],
+          startAngle: 140,
+          endAngle: -140,
+          min: 0,
+          max: 100,
+          precision: 0,
+          splitNumber: 10,
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: [
+                [0.4, "#ff4500"],
+                [0.8, "orange"],
+                [0.9, "skyblue"],
+                [1, "lightgreen"]
+              ],
+              width: 30
+            }
+          },
+          axisTick: {
+            show: true,
+            splitNumber: 5,
+            length: 8,
+            lineStyle: {
+              color: "#eee",
+              width: 1,
+              type: "solid"
+            }
+          },
+          axisLabel: {
+            show: true,
+            formatter: function(v) {
+              switch (v + "") {
+                case "40":
+                  return "40";
+                case "80":
+                  return "80";
+                case "90":
+                  return "90";
+                case "100":
+                  return "100";
+                default:
+                  return "";
+              }
+            },
+            textStyle: {
+              color: "#333"
+            }
+          },
+          splitLine: {
+            show: true,
+            length: 30,
+            lineStyle: {
+              color: "#eee",
+              width: 2,
+              type: "solid"
+            }
+          },
+          pointer: {
+            length: "80%",
+            width: 8,
+            color: "auto"
+          },
+          title: {
+            show: true,
+            offsetCenter: ["-65%", -10],
+            textStyle: {
+              color: "#333",
+              fontSize: 15
+            }
+          },
+          detail: {
+            show: true,
+            backgroundColor: "rgba(0,0,0,0)",
+            borderWidth: 0,
+            borderColor: "#ccc",
+            width: 100,
+            height: 40,
+            offsetCenter: ["-60%", 10],
+            formatter: "{value}%",
+            textStyle: {
+              color: "auto",
+              fontSize: 30
+            }
+          },
+          data: [{
+            value: porcentaje,
+            name: "Capital operativo"
+          }]
+        }]
+      });
+      var liquidezChart = echarts.init(document.getElementById("liquidez_chart"+resp2.idCampo), theme);
+      liquidezChart.setOption({
+        tooltip: {
+          formatter: "{a} <br/>{b} : {c}%"
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            restore: {
+              show: true,
+              title: "Restore"
+            },
+            saveAsImage: {
+              show: true,
+              title: "Guardar"
+            }
+          }
+        },
+        series: [{
+          name: "Liquidez",
+          type: "gauge",
+          center: ["50%", "50%"],
+          startAngle: 140,
+          endAngle: -140,
+          min: 0,
+          max: 100,
+          precision: 0,
+          splitNumber: 10,
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: [
+              
+                [0.4, "#ff4500"],
+                [0.8, "orange"],
+                [0.9, "skyblue"],
+                [1, "lightgreen"]
+              ],
+              width: 30
+            }
+          },
+          axisTick: {
+            show: true,
+            splitNumber: 5,
+            length: 8,
+            lineStyle: {
+              color: "#eee",
+              width: 1,
+              type: "solid"
+            }
+          },
+          axisLabel: {
+            show: true,
+            formatter: function(v) {
+              switch (v + "") {
+                case "40":
+                  return "40";
+                case "80":
+                  return "80";
+                case "90":
+                  return "90";
+                case "100":
+                  return "100";
+                default:
+                  return "";
+              }
+            },
+            textStyle: {
+              color: "#333"
+            }
+          },
+          splitLine: {
+            show: true,
+            length: 30,
+            lineStyle: {
+              color: "#eee",
+              width: 2,
+              type: "solid"
+            }
+          },
+          pointer: {
+            length: "80%",
+            width: 8,
+            color: "auto"
+          },
+          title: {
+            show: true,
+            offsetCenter: ["-65%", -10],
+            textStyle: {
+              color: "#333",
+              fontSize: 15
+            }
+          },
+          detail: {
+            show: true,
+            backgroundColor: "rgba(0,0,0,0)",
+            borderWidth: 0,
+            borderColor: "#ccc",
+            width: 100,
+            height: 40,
+            offsetCenter: ["-60%", 10],
+            formatter: "{value}%",
+            textStyle: {
+              color: "auto",
+              fontSize: 30
+            }
+          },
+          data: [{
+            value: porcentajeLiquidez,
+            name: "Liquidez"
+          }]
+        }]
+      });
+      indexGlobal++;
+      if(indexGlobal<listaParam.length)
+      {
+        mandaAjaxChecarCampos();
+      }
+      else
+      {
+        $("#loadingCampos").html('');
+      }
+     }//if ajax
+  }
+  var  URL_GLOBAL, NOMBRE_GLOBAL, idCampo_GLOBAL,primeraVezGlobal;
+    var listaParam, indexGlobal;
+         
+  function mandaAjaxChecarCampos()
+  {
+      $.ajax({
+        url: listaParam[indexGlobal].url+"dashboard",
+        dataType : "jsonp",
+        type : "GET",
+        cache: false,
+        crossDomain: true,
+        jsonpCallback : "requestCampo",
+        data : listaParam[indexGlobal],
+        async : false,
+       error: function (request, status, error) {
+        //error: function () {
+            //console.log(request.responseText+"   "+status);
+            var cadGlobal='';
+            var nombre = listaParam[indexGlobal].nombre;
+
+                   cadGlobal=cadGlobal+' <div class="row">\
+          <div class="col-md-12 col-sm-12 col-xs-12">\
+                <div class="x_panel">\
+                  <div class="x_title">\
+                    <h2>'+nombre+' </h2>\
+                    <ul class="nav navbar-right panel_toolbox">\
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>\
+                      </li>\
+                      <li class="dropdown">\
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>\
+                        <ul class="dropdown-menu" role="menu">\
+                          <li><a href="#">Settings 1</a>\
+                          </li>\
+                          <li><a href="#">Settings 2</a>\
+                          </li>\
+                        </ul>\
+                      </li>\
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>\
+                      </li>\
+                    </ul>\
+                    <div class="clearfix"></div>\
+                  </div>\
+                  <div class="x_content">\
+                    <form class="form-horizontal form-label-left">\
+                      <div class="form-group">\
+                        <label class="control-label col-md-12 col-sm-12 col-xs-12" style="text-align: center;font-size: 40px;">'+nombre+' est&aacute; offline</label>\
+                      </div>\
+                    </form>\
+                    </div>\
+                  </div>\
+                </div>\
+              </div>\
+          </div>\
+          <div class="clearfix"></div>\
+          </div>';   
+          $("#contenidoOtrosCampos").append(cadGlobal);  
+          indexGlobal++;
+          if(indexGlobal<listaParam.length)
+          {
+            mandaAjaxChecarCampos();
+          }
+          else
+          {
+            $("#loadingCampos").html('');
+          }
+        },
+        beforeSend : function (){
+        },
+        complete : function (){
+        }, 
+        success : function (resp){
+        }
+      });//ajax dashboard
+
+  }
+  function checaOtrosCampos(PERIOD)
+  {
+     $.ajax({
+      url: "/checaOtrosCampos",
+      dataType : "json",
+      type : "post",
+      async : true,
+      beforeSend : function (){
+      },
+      complete : function (){
+      }, 
+      success : function (resp1){
+        if(resp1.success==1)
+        {
+          primeraVezGlobal=1;
+          $("#loadingCampos").html('<center><img id="loading" src="static/images/loading2.gif" width="30%"  /><center>');
+          var campos = Object.keys(resp1.otrosCampos);
+          var i = 0;
+          listaParam = new Array();
+          indexGlobal=0;
+          for(i=0;i<campos.length;i++)
+          {
+            URL_GLOBAL  = resp1.otrosCampos[campos[i]]["URL"];
+            NOMBRE_GLOBAL  = resp1.otrosCampos[campos[i]]["Nombre"];
+            idCampo_GLOBAL = resp1.otrosCampos[campos[i]]["IdCampo"];
+            //hacer una lista con param, y recursivamente cargar esa lista
+            listaParam.push({PERIOD : PERIOD, hash : resp1.hash, BUNIT : resp1.BUNIT, nombre: NOMBRE_GLOBAL, idCampo : idCampo_GLOBAL, url :resp1.otrosCampos[campos[i]]["URL"] });
+          }
+          mandaAjaxChecarCampos();
+        }
+      }
+    });
+
+  }
   function calculaDashboard1()
   {
     var today = new Date();
@@ -5166,15 +6626,20 @@ setTimeout(function(){
                   </div>\
                 </div>\
               </div>\
+              <div id="contenidoOtrosCampos"></div>\
+              <div id="loadingCampos"></div>\
               </div>';
             $("#mainContent").html(cad);
+            checaOtrosCampos(PERIOD);
             $('#periodosSelect option[value="'+PERIOD+'"]').attr("selected","selected");
+
 
 
             $("#periodosSelect").change( function (){
                $("#mainContent").html('<center><img id="loading" src="static/images/loading2.gif" width="30%"  /><center>');
               var PERIOD = $(this).val();
               capitalOperativoAlPeriodo(PERIOD);
+              
             });
 
             var cad = '<tr><td><a href="#" busqueda="\'1\'" tipo="1" class="veDetalle">Activos corrientes</a></td><td>'+format2(resp.corrientesActivos,"$")+'</td></tr>';
@@ -5213,433 +6678,8 @@ setTimeout(function(){
            
             $("#tablaLiquidez").html(cad);
 
-
-              var theme1 = {
-          color: [
-              '#26B99A', '#34495E', '#BDC3C7', '#3498DB',
-              '#9B59B6', '#8abb6f', '#759c6a', '#bfd3b7'
-          ],
-
-          title: {
-              itemGap: 8,
-              textStyle: {
-                  fontWeight: 'normal',
-                  color: '#408829'
-              }
-          },
-
-          dataRange: {
-              color: ['#1f610a', '#97b58d']
-          },
-
-          toolbox: {
-              color: ['#408829', '#408829', '#408829', '#408829']
-          },
-
-          tooltip: {
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              axisPointer: {
-                  type: 'line',
-                  lineStyle: {
-                      color: '#408829',
-                      type: 'dashed'
-                  },
-                  crossStyle: {
-                      color: '#408829'
-                  },
-                  shadowStyle: {
-                      color: 'rgba(200,200,200,0.3)'
-                  }
-              }
-          },
-
-          dataZoom: {
-              dataBackgroundColor: '#eee',
-              fillerColor: 'rgba(64,136,41,0.2)',
-              handleColor: '#408829'
-          },
-          grid: {
-              borderWidth: 0
-          },
-
-          categoryAxis: {
-              axisLine: {
-                  lineStyle: {
-                      color: '#408829'
-                  }
-              },
-              splitLine: {
-                  lineStyle: {
-                      color: ['#eee']
-                  }
-              }
-          },
-
-          valueAxis: {
-              axisLine: {
-                  lineStyle: {
-                      color: '#408829'
-                  }
-              },
-              splitArea: {
-                  show: true,
-                  areaStyle: {
-                      color: ['rgba(250,250,250,0.1)', 'rgba(200,200,200,0.1)']
-                  }
-              },
-              splitLine: {
-                  lineStyle: {
-                      color: ['#eee']
-                  }
-              }
-          },
-          timeline: {
-              lineStyle: {
-                  color: '#408829'
-              },
-              controlStyle: {
-                  normal: {color: '#408829'},
-                  emphasis: {color: '#408829'}
-              }
-          },
-
-          k: {
-              itemStyle: {
-                  normal: {
-                      color: '#68a54a',
-                      color0: '#a9cba2',
-                      lineStyle: {
-                          width: 1,
-                          color: '#408829',
-                          color0: '#86b379'
-                      }
-                  }
-              }
-          },
-          map: {
-              itemStyle: {
-                  normal: {
-                      areaStyle: {
-                          color: '#ddd'
-                      },
-                      label: {
-                          textStyle: {
-                              color: '#c12e34'
-                          }
-                      }
-                  },
-                  emphasis: {
-                      areaStyle: {
-                          color: '#99d2dd'
-                      },
-                      label: {
-                          textStyle: {
-                              color: '#c12e34'
-                          }
-                      }
-                  }
-              }
-          },
-          force: {
-              itemStyle: {
-                  normal: {
-                      linkStyle: {
-                          strokeColor: '#408829'
-                      }
-                  }
-              }
-          },
-          chord: {
-              padding: 4,
-              itemStyle: {
-                  normal: {
-                      lineStyle: {
-                          width: 1,
-                          color: 'rgba(128, 128, 128, 0.5)'
-                      },
-                      chordStyle: {
-                          lineStyle: {
-                              width: 1,
-                              color: 'rgba(128, 128, 128, 0.5)'
-                          }
-                      }
-                  },
-                  emphasis: {
-                      lineStyle: {
-                          width: 1,
-                          color: 'rgba(128, 128, 128, 0.5)'
-                      },
-                      chordStyle: {
-                          lineStyle: {
-                              width: 1,
-                              color: 'rgba(128, 128, 128, 0.5)'
-                          }
-                      }
-                  }
-              }
-          },
-          gauge: {
-              startAngle: 225,
-              endAngle: -45,
-              axisLine: {
-                  show: true,
-                  lineStyle: {
-                      color: [[0.2, '#86b379'], [0.8, '#68a54a'], [1, '#408829']],
-                      width: 8
-                  }
-              },
-              axisTick: {
-                  splitNumber: 10,
-                  length: 12,
-                  lineStyle: {
-                      color: 'auto'
-                  }
-              },
-              axisLabel: {
-                  textStyle: {
-                      color: 'auto'
-                  }
-              },
-              splitLine: {
-                  length: 18,
-                  lineStyle: {
-                      color: 'auto'
-                  }
-              },
-              pointer: {
-                  length: '90%',
-                  color: 'auto'
-              },
-              title: {
-                  textStyle: {
-                      color: '#333'
-                  }
-              },
-              detail: {
-                  textStyle: {
-                      color: 'auto'
-                  }
-              }
-          },
-          textStyle: {
-              fontFamily: 'Arial, Verdana, sans-serif'
-          }
-      };
-
-       var theme2 = {
-          color: [
-              '#26B99A', '#34495E', '#BDC3C7', '#3498DB',
-              '#9B59B6', '#8abb6f', '#759c6a', '#bfd3b7'
-          ],
-
-          title: {
-              itemGap: 8,
-              textStyle: {
-                  fontWeight: 'normal',
-                  color: '#408829'
-              }
-          },
-
-          dataRange: {
-              color: ['#1f610a', '#97b58d']
-          },
-
-          toolbox: {
-              color: ['#408829', '#408829', '#408829', '#408829']
-          },
-
-          tooltip: {
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              axisPointer: {
-                  type: 'line',
-                  lineStyle: {
-                      color: '#408829',
-                      type: 'dashed'
-                  },
-                  crossStyle: {
-                      color: '#408829'
-                  },
-                  shadowStyle: {
-                      color: 'rgba(200,200,200,0.3)'
-                  }
-              }
-          },
-
-          dataZoom: {
-              dataBackgroundColor: '#eee',
-              fillerColor: 'rgba(64,136,41,0.2)',
-              handleColor: '#408829'
-          },
-          grid: {
-              borderWidth: 0
-          },
-
-          categoryAxis: {
-              axisLine: {
-                  lineStyle: {
-                      color: '#408829'
-                  }
-              },
-              splitLine: {
-                  lineStyle: {
-                      color: ['#eee']
-                  }
-              }
-          },
-
-          valueAxis: {
-              axisLine: {
-                  lineStyle: {
-                      color: '#408829'
-                  }
-              },
-              splitArea: {
-                  show: true,
-                  areaStyle: {
-                      color: ['rgba(250,250,250,0.1)', 'rgba(200,200,200,0.1)']
-                  }
-              },
-              splitLine: {
-                  lineStyle: {
-                      color: ['#eee']
-                  }
-              }
-          },
-          timeline: {
-              lineStyle: {
-                  color: '#408829'
-              },
-              controlStyle: {
-                  normal: {color: '#408829'},
-                  emphasis: {color: '#408829'}
-              }
-          },
-
-          k: {
-              itemStyle: {
-                  normal: {
-                      color: '#68a54a',
-                      color0: '#a9cba2',
-                      lineStyle: {
-                          width: 1,
-                          color: '#408829',
-                          color0: '#86b379'
-                      }
-                  }
-              }
-          },
-          map: {
-              itemStyle: {
-                  normal: {
-                      areaStyle: {
-                          color: '#ddd'
-                      },
-                      label: {
-                          textStyle: {
-                              color: '#c12e34'
-                          }
-                      }
-                  },
-                  emphasis: {
-                      areaStyle: {
-                          color: '#99d2dd'
-                      },
-                      label: {
-                          textStyle: {
-                              color: '#c12e34'
-                          }
-                      }
-                  }
-              }
-          },
-          force: {
-              itemStyle: {
-                  normal: {
-                      linkStyle: {
-                          strokeColor: '#408829'
-                      }
-                  }
-              }
-          },
-          chord: {
-              padding: 4,
-              itemStyle: {
-                  normal: {
-                      lineStyle: {
-                          width: 1,
-                          color: 'rgba(128, 128, 128, 0.5)'
-                      },
-                      chordStyle: {
-                          lineStyle: {
-                              width: 1,
-                              color: 'rgba(128, 128, 128, 0.5)'
-                          }
-                      }
-                  },
-                  emphasis: {
-                      lineStyle: {
-                          width: 1,
-                          color: 'rgba(128, 128, 128, 0.5)'
-                      },
-                      chordStyle: {
-                          lineStyle: {
-                              width: 1,
-                              color: 'rgba(128, 128, 128, 0.5)'
-                          }
-                      }
-                  }
-              }
-          },
-          gauge: {
-              startAngle: 225,
-              endAngle: -45,
-              axisLine: {
-                  show: true,
-                  lineStyle: {
-                      color: [[0.2, '#86b379'], [0.8, '#68a54a'], [1, '#408829']],
-                      width: 8
-                  }
-              },
-              axisTick: {
-                  splitNumber: 10,
-                  length: 12,
-                  lineStyle: {
-                      color: 'auto'
-                  }
-              },
-              axisLabel: {
-                  textStyle: {
-                      color: 'auto'
-                  }
-              },
-              splitLine: {
-                  length: 18,
-                  lineStyle: {
-                      color: 'auto'
-                  }
-              },
-              pointer: {
-                  length: '90%',
-                  color: 'auto'
-              },
-              title: {
-                  textStyle: {
-                      color: '#333'
-                  }
-              },
-              detail: {
-                  textStyle: {
-                      color: 'auto'
-                  }
-              }
-          },
-          textStyle: {
-              fontFamily: 'Arial, Verdana, sans-serif'
-          }
-      };
-
-      var echartGauge = echarts.init(document.getElementById('echart_guage'), theme2);
-
+     
+      var echartGauge = echarts.init(document.getElementById("echart_guage"), theme);
       echartGauge.setOption({
         tooltip: {
           formatter: "{a} <br/>{b} : {c}%"
@@ -5658,9 +6698,9 @@ setTimeout(function(){
           }
         },
         series: [{
-          name: 'Capital Operativo',
-          type: 'gauge',
-          center: ['50%', '50%'],
+          name: "Capital Operativo",
+          type: "gauge",
+          center: ["50%", "50%"],
           startAngle: 140,
           endAngle: -140,
           min: 0,
@@ -5671,11 +6711,10 @@ setTimeout(function(){
             show: true,
             lineStyle: {
               color: [
-              
-                [0.4, '#ff4500'],
-                [0.8, 'orange'],
-                [0.9, 'skyblue'],
-                [1, 'lightgreen']
+                [0.4, "#ff4500"],
+                [0.8, "orange"],
+                [0.9, "skyblue"],
+                [1, "lightgreen"]
               ],
               width: 30
             }
@@ -5685,79 +6724,74 @@ setTimeout(function(){
             splitNumber: 5,
             length: 8,
             lineStyle: {
-              color: '#eee',
+              color: "#eee",
               width: 1,
-              type: 'solid'
+              type: "solid"
             }
           },
           axisLabel: {
             show: true,
             formatter: function(v) {
-              switch (v + '') {
-                case '40':
-                  return '40';
-                case '80':
-                  return '80';
-                case '90':
-                  return '90';
-                case '100':
-                  return '100';
+              switch (v + "") {
+                case "40":
+                  return "40";
+                case "80":
+                  return "80";
+                case "90":
+                  return "90";
+                case "100":
+                  return "100";
                 default:
-                  return '';
+                  return "";
               }
             },
             textStyle: {
-              color: '#333'
+              color: "#333"
             }
           },
           splitLine: {
             show: true,
             length: 30,
             lineStyle: {
-              color: '#eee',
+              color: "#eee",
               width: 2,
-              type: 'solid'
+              type: "solid"
             }
           },
           pointer: {
-            length: '80%',
+            length: "80%",
             width: 8,
-            color: 'auto'
+            color: "auto"
           },
           title: {
             show: true,
-            offsetCenter: ['-65%', -10],
+            offsetCenter: ["-65%", -10],
             textStyle: {
-              color: '#333',
+              color: "#333",
               fontSize: 15
             }
           },
           detail: {
             show: true,
-            backgroundColor: 'rgba(0,0,0,0)',
+            backgroundColor: "rgba(0,0,0,0)",
             borderWidth: 0,
-            borderColor: '#ccc',
+            borderColor: "#ccc",
             width: 100,
             height: 40,
-            offsetCenter: ['-60%', 10],
-            formatter: '{value}%',
+            offsetCenter: ["-60%", 10],
+            formatter: "{value}%",
             textStyle: {
-              color: 'auto',
+              color: "auto",
               fontSize: 30
             }
           },
           data: [{
             value: porcentaje,
-            name: 'Capital operativo'
+            name: "Capital operativo"
           }]
         }]
       });
-
-      
-     
-
-        var liquidezChart = echarts.init(document.getElementById('liquidez_chart'), theme1);
-
+      var liquidezChart = echarts.init(document.getElementById("liquidez_chart"), theme);
       liquidezChart.setOption({
         tooltip: {
           formatter: "{a} <br/>{b} : {c}%"
@@ -5776,9 +6810,9 @@ setTimeout(function(){
           }
         },
         series: [{
-          name: 'Liquidez',
-          type: 'gauge',
-          center: ['50%', '50%'],
+          name: "Liquidez",
+          type: "gauge",
+          center: ["50%", "50%"],
           startAngle: 140,
           endAngle: -140,
           min: 0,
@@ -5790,10 +6824,10 @@ setTimeout(function(){
             lineStyle: {
               color: [
               
-                [0.4, '#ff4500'],
-                [0.8, 'orange'],
-                [0.9, 'skyblue'],
-                [1, 'lightgreen']
+                [0.4, "#ff4500"],
+                [0.8, "orange"],
+                [0.9, "skyblue"],
+                [1, "lightgreen"]
               ],
               width: 30
             }
@@ -5803,70 +6837,70 @@ setTimeout(function(){
             splitNumber: 5,
             length: 8,
             lineStyle: {
-              color: '#eee',
+              color: "#eee",
               width: 1,
-              type: 'solid'
+              type: "solid"
             }
           },
           axisLabel: {
             show: true,
             formatter: function(v) {
-              switch (v + '') {
-                case '40':
-                  return '40';
-                case '80':
-                  return '80';
-                case '90':
-                  return '90';
-                case '100':
-                  return '100';
+              switch (v + "") {
+                case "40":
+                  return "40";
+                case "80":
+                  return "80";
+                case "90":
+                  return "90";
+                case "100":
+                  return "100";
                 default:
-                  return '';
+                  return "";
               }
             },
             textStyle: {
-              color: '#333'
+              color: "#333"
             }
           },
           splitLine: {
             show: true,
             length: 30,
             lineStyle: {
-              color: '#eee',
+              color: "#eee",
               width: 2,
-              type: 'solid'
+              type: "solid"
             }
           },
           pointer: {
-            length: '80%',
+            length: "80%",
             width: 8,
-            color: 'auto'
+            color: "auto"
           },
           title: {
             show: true,
-            offsetCenter: ['-65%', -10],
+            offsetCenter: ["-65%", -10],
             textStyle: {
-              color: '#333',
+              color: "#333",
               fontSize: 15
             }
           },
           detail: {
             show: true,
-            backgroundColor: 'rgba(0,0,0,0)',
+            backgroundColor: "rgba(0,0,0,0)",
             borderWidth: 0,
-            borderColor: '#ccc',
+            borderColor: "#ccc",
             width: 100,
             height: 40,
-            offsetCenter: ['-60%', 10],
-            formatter: '{value}%',
+            offsetCenter: ["-60%", 10],
+            formatter: "{value}%",
             textStyle: {
-              color: 'auto',
+              color: "auto",
               fontSize: 30
             }
           },
           data: [{
             value: porcentajeLiquidez,
-            name: 'Liquidez'
+            name: "Liquidez"
           }]
         }]
       });
@@ -6007,6 +7041,7 @@ setTimeout(function(){
     });
    
     $(document).ready(function() {
+      $.ajaxSetup({ cache: false });
       calculaDashboard1();  
     });
   </script>

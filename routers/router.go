@@ -50,6 +50,12 @@ func init() {
 	beego.Router("/dashboard", &controllers.DashboardController{})
 	beego.Router("/veDetallePrimerNivel", &controllers.VeDetallePrimerNivelController{})
 	beego.Router("/veDetalle", &controllers.VeDetalleController{})
+	beego.Router("/checaOtrosCampos", &controllers.ChecaOtrosCamposController{})
+	beego.Router("/configOpciones", &controllers.GetConfigController{})	
+	beego.Router("/guardarConfigOpciones", &controllers.GuardarConfigOpcionesController{})
+	beego.Router("/dameActivosFijos", &controllers.ListaActivosFijosController{})
+	beego.Router("/generarReporteDeIglesias", &controllers.GenerarReporteDeIglesiasController{})
+	beego.Router("/generarReporteDeMAT", &controllers.GenerarReporteDeMATController{})
 }
 
 

@@ -21,10 +21,14 @@ import (
 	"strings"
 	"encoding/hex"
 	"encoding/json"
-	//"net/http"
+	"net/http"
 	//"net/url"
-	//"sort"
+	"io/ioutil"
+	
 )
+
+
+
 type MainController struct {
 	beego.Controller
 }
@@ -106,6 +110,9 @@ type ListaConceptosCedulasController struct {
 type ListaLineasCedulasController struct {
 	beego.Controller
 }
+type ChecaOtrosCamposController struct {
+	beego.Controller
+}
 type ListaLineasTiposDeDiarioController struct {
 	beego.Controller
 }
@@ -128,6 +135,9 @@ type NuevoLineasTiposDeDiarioController struct {
 	beego.Controller
 }
 type NuevoLineasDeDiarioController struct {
+	beego.Controller
+}
+type GuardarConfigOpcionesController struct {
 	beego.Controller
 }
 type ContabilizaDiarioController struct {
@@ -157,6 +167,9 @@ type NuevoTipoDeDiarioController struct {
 type ListaTiposDeDiarioController struct {
 	beego.Controller
 }
+type ListaActivosFijosController struct {
+	beego.Controller
+}
 type DameLineaDelTipoDeDiarioController struct {
 	beego.Controller
 }
@@ -169,6 +182,16 @@ type VeDetalleController struct {
 type VeDetallePrimerNivelController struct {
 	beego.Controller
 }
+type GetConfigController struct {
+	beego.Controller
+}
+type GenerarReporteDeIglesiasController struct {
+	beego.Controller
+}
+type GenerarReporteDeMATController struct {
+	beego.Controller
+}
+
 
 
 
@@ -322,7 +345,7 @@ func (c * RegistraDiarioAPIController) Post() {
    	byteArray := []byte(substring)
 	hasher := sha512.New()
     hasher.Write(byteArray)
-	cryptoText := base64.URLEncoding.EncodeToString(  []byte(hex.EncodeToString(hasher.Sum(nil))))
+	cryptoText := base64.StdEncoding.EncodeToString(  []byte(hex.EncodeToString(hasher.Sum(nil))))
 	if Compare(cryptoText,hash)==0 {
 		BUNIT := c.GetString("BUNIT")
 		connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
@@ -1098,7 +1121,7 @@ func (c *ContabilizaDiarioController) Post() {
 	tipoDeUsuario := c.GetSession("tipoDeUsuario")
 	if tienePermisosContador(tipoDeUsuario.(int)) {
 		BUNIT := c.GetSession("BUNIT")
-		//correo := c.GetSession("usuario")
+		correo := c.GetSession("usuario")
 		timestamp := c.GetString("timestamp")
 		idTipoDeDiario := c.GetString("idTipoDeDiario")
 		connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
@@ -1204,59 +1227,31 @@ func (c *ContabilizaDiarioController) Post() {
 				rowsFactura.Scan(&deboFacturar, &servicio, &cliente, &concepto)
 
 				if deboFacturar == 1 {
-					/*
-					urlX := "http://umn.redirectme.net:755/factura"
-					hc := http.Client{}
+					Empresa := ""
+					pass := ""
 
-				    form := url.Values{}
-				    form.Add("Empresa", "IASD_UMN")
-				    form.Add("cliente", cliente)
-				    form.Add("concepto", concepto)
-				    form.Add("servicio", servicio)
-				    form.Add("precio", amountString)
-				    form.Add("contra", "SUFTRDkyNjAzOVNBSQ==")
-				    form.Add("correoReceptor", correo.(string))
-					req, errJ := http.NewRequest("GET", urlX, strings.NewReader(form.Encode()))
-				    if errJ != nil {
-				        panic(errJ)
-				    }
-
-				    //req.PostForm = form
-				    //req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-				   // glog.Info("form was %v", form)
-				    _, errX := hc.Do(req)
-				    if errX != nil {
-				        panic(errX)
-				    }
-					/*
-						fmt.Println(url)
-			
-    				var jsonStr = []byte(`{"Empresa":"IASD_UMN", 
-    					"servicio" : `+servicio+`,
-    					"cliente" : `+cliente+`,
-    					"concepto" : `+concepto+`,
-    					"precio" : `+amountString+`,
-    					"contra" : "SUFTRDkyNjAzOVNBSQ==",
-    					"correoReceptor" : "`+correo.(string)+`"
-    					"}`)
-    				
-    				req, _ := http.NewRequest("GET", url, bytes.NewBuffer(jsonStr))
-				    req.Header.Set("X-Custom-Header", "myvalue")
-				    req.Header.Set("Content-Type", "application/json")
-
-				    client := &http.Client{}
-				    resp, errJ := client.Do(req)
-				    if errJ != nil {
-				        panic(errJ)
-				    }
-    				defer resp.Body.Close()
-
-				    fmt.Println("response Status:", resp.Status)
-				    fmt.Println("response Headers:", resp.Header)
-				   // body, _ := ioutil.ReadAll(resp.Body)
-				    //fmt.Println("response Body:", string(body))
-				    */
+					queryOpciones := `SELECT Empresa, pass
+					FROM [SUNPLUSADV].[dbo].[zConfig] WHERE BUNIT = '`+BUNIT.(string)+`'`
+					rowsOpciones, errOpciones := conn.Query(queryOpciones)
+					if errOpciones != nil {
+						defer conn.Close()
+						log.Fatal("Perdon opciones! : ", errOpciones.Error())
+					}
+					if rowsOpciones.Next()  {
+						rowsOpciones.Scan(&Empresa, &pass)
+						uDec, errorx := base64.StdEncoding.DecodeString(pass)
+						if errorx != nil {
+							panic(errorx)
+						}
+						uDecS := string(uDec) 
+						resp, err := http.Get("http://umn.redirectme.net:755/factura?Empresa="+Empresa+"&cliente="+cliente+"&concepto="+concepto+"&servicio="+servicio+"&precio="+amountString+"&contra="+uDecS+"&correoReceptor="+correo.(string)+"&diario="+strconv.Itoa(diario)+"&linea="+lineaGG+"&BUNIT="+BUNIT.(string))
+						if err != nil {
+							panic(errorx)
+						}
+						defer resp.Body.Close()
+						body, err := ioutil.ReadAll(resp.Body)
+						fmt.Printf("%s", body)
+					}
 				}
 				
 			}
@@ -1302,6 +1297,60 @@ func (c *ContabilizaDiarioController) Post() {
 		return
 	}
 } 
+
+
+func (c *GuardarConfigOpcionesController) Post() {
+  alias := c.GetSession("alias")
+  if alias == nil{
+    return
+  }
+  tipoDeUsuario := c.GetSession("tipoDeUsuario")
+  if tienePermisosContador(tipoDeUsuario.(int)) {
+    BUNIT := c.GetSession("BUNIT")
+    pass := c.GetString("pass")
+    Empresa := c.GetString("Empresa")
+    tipoDimension := c.GetString("tipoDimension")
+    cryptoText := base64.StdEncoding.EncodeToString(  []byte(pass))
+  
+
+    connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
+    conn, errS := sql.Open("mssql", connString2)
+    if errS != nil {
+      log.Fatal("Perdon! Open connection failed:", errS.Error())
+    }
+
+
+    query := `INSERT INTO [SUNPLUSADV].[dbo].[zConfig] (BUNIT, pass, Empresa , tipoDimension) VALUES
+     ( '`+BUNIT.(string)+`', '`+cryptoText+`', '`+Empresa+`',`+tipoDimension+`)`
+    queryAver := "SELECT idConfig FROM [SUNPLUSADV].[dbo].[zConfig] WHERE BUNIT = '"+BUNIT.(string)+"'"
+    rowsAver, _ := conn.Query(queryAver)
+    if rowsAver.Next()  {
+      var idConfig int
+      rowsAver.Scan(&idConfig)
+      idConfigS := strconv.Itoa(idConfig)
+      query = `UPDATE [SUNPLUSADV].[dbo].[zConfig] SET Empresa = '`+Empresa+`', pass = '`+cryptoText+`', tipoDimension = `+tipoDimension+`
+      WHERE idConfig =  `+ idConfigS
+	} 
+	result , err := conn.Exec(query)
+	if err != nil {
+		fmt.Println(query)
+		defer conn.Close()
+		log.Fatal("Perdon insert o updateX! : ", err.Error())
+	}
+	afectados, _ := result.RowsAffected()
+	if afectados == 1 {
+      example := map[string]interface{}{ "success":1}
+      c.Data["json"] = &example
+      c.ServeJSON()
+      return
+    }
+    example := map[string]interface{}{ "success":0}
+    c.Data["json"] = &example
+    c.ServeJSON()
+    return
+  }
+} 
+
 func (c *NuevoLineasDeDiarioController) Post() {
 	alias := c.GetSession("alias")
 	if alias == nil{
@@ -1512,12 +1561,8 @@ func (c *NuevoLineasCedulasController) Post() {
 	}
 } 
 
-
-func (c *DashboardController) Post() {
-	/*alias := c.GetSession("alias")
-	if alias == nil{
-		return
-	}*/
+func Dash(c *DashboardController )  {
+	
 	tipoDeUsuario := c.GetSession("tipoDeUsuario")
 	hash := c.GetString("hash")
 	currentTime := int64(time.Now().Unix())
@@ -1527,9 +1572,17 @@ func (c *DashboardController) Post() {
    	byteArray := []byte(substring)
 	hasher := sha512.New()
     hasher.Write(byteArray)
-	cryptoText := base64.URLEncoding.EncodeToString(  []byte(hex.EncodeToString(hasher.Sum(nil))))
-	if tienePermisosContador(tipoDeUsuario.(int)) || Compare(cryptoText,hash)==0  {
+	cryptoText := base64.StdEncoding.EncodeToString(  []byte(hex.EncodeToString(hasher.Sum(nil))))
+	esAPI := 0
+	if Compare(cryptoText,hash)==0 {
+		tipoDeUsuario = 3
+		esAPI = 1
+	}
+	if tienePermisosContador(tipoDeUsuario.(int)) {
 		BUNIT := c.GetSession("BUNIT")
+		if BUNIT == nil {
+			BUNIT = c.GetString("BUNIT")
+		}	
 		PERIOD := c.GetString("PERIOD")
 		anio:=string(PERIOD[0:4])	
 		mes:=string(PERIOD[5:7])	
@@ -1548,20 +1601,6 @@ func (c *DashboardController) Post() {
 			}
 			PERIOD_ANTERIOR = anio+"0"+mesS
 		}
-		
-	
-		/*
-		currentTime := int64(time.Now().Unix())
-		tm := time.Unix(currentTime, 0)
-		dateString := tm.String() 
-		substring := string(dateString[0:10])	
-		anio:=string(substring[0:4])	
-		mes:=string(substring[5:7])	
-		PERIOD_ACTUAL := anio+"0"+mes
-		anioAnterior, _ := strconv.Atoi(anio)
-		anioAnterior--
-		PERIOD_ANTERIOR := strconv.Itoa(anioAnterior)+"0"+mes
-	*/
 
 
 
@@ -2199,12 +2238,26 @@ func (c *DashboardController) Post() {
 		}
 
 
-
-		example := map[string]interface{}{ "success":1, "pcent" : pcent, "cuentaCobrarOrgSuperior" : cuentasPorCobrarOrganizacionesSuperiores, "inversiones" : inversiones, "efectivo" : efectivo, "periodos" : models.GetAllPeriodos(), "periodoAnterior":PERIOD_ANTERIOR, "activosNetosAsignados" : activosNetosAsignados, "corrientesActivos" : corrientes, "corrientesPasivos" : corrientesPasivos, "gastosOperativos" : gastosOperativos}
-		c.Data["json"] = &example
-		c.ServeJSON()
+		if esAPI == 0 {
+			example := map[string]interface{}{ "success":1, "pcent" : pcent, "cuentaCobrarOrgSuperior" : cuentasPorCobrarOrganizacionesSuperiores, "inversiones" : inversiones, "efectivo" : efectivo, "periodos" : models.GetAllPeriodos(), "periodoAnterior":PERIOD_ANTERIOR, "activosNetosAsignados" : activosNetosAsignados, "corrientesActivos" : corrientes, "corrientesPasivos" : corrientesPasivos, "gastosOperativos" : gastosOperativos}
+			c.Data["json"] = &example
+			c.ServeJSON()
+		} else {
+			example := map[string]interface{}{ "success":1, "idCampo" : c.GetString("idCampo"), "nombre" : c.GetString("nombre"), "pcent" : pcent, "cuentaCobrarOrgSuperior" : cuentasPorCobrarOrganizacionesSuperiores, "inversiones" : inversiones, "efectivo" : efectivo, "periodos" : models.GetAllPeriodos(), "periodoAnterior":PERIOD_ANTERIOR, "activosNetosAsignados" : activosNetosAsignados, "corrientesActivos" : corrientes, "corrientesPasivos" : corrientesPasivos, "gastosOperativos" : gastosOperativos}
+			c.Data["jsonp"] = &example
+			c.ServeJSONP()
+		}
+		
 		return
 	}
+}
+
+func (c *DashboardController) Post() {
+	Dash(c)
+} 
+
+func (c *DashboardController) Get() {
+	Dash(c)
 } 
 
 func (c *DameDimensionesDisponiblesSegunLaCuentaController) Post() {
@@ -2221,6 +2274,20 @@ func (c *DameDimensionesDisponiblesSegunLaCuentaController) Post() {
 		if errS != nil {
 			log.Fatal("Perdon! Open connection failed:", errS.Error())
 		}
+		
+		tipoDimension := 0
+
+		queryOpciones := `SELECT tipoDimension
+		FROM [SUNPLUSADV].[dbo].[zConfig] WHERE BUNIT = '`+BUNIT.(string)+`'`
+		rowsOpciones, errOpciones := conn.Query(queryOpciones)
+		if errOpciones != nil {
+			defer conn.Close()
+			log.Fatal("Perdon opciones! : ", errOpciones.Error())
+		}
+		if rowsOpciones.Next()  {
+			rowsOpciones.Scan(&tipoDimension)
+		}
+
 		query := `SELECT STATUS, ENTER_ANL_1, ENTER_ANL_2, ENTER_ANL_3, ENTER_ANL_4, ENTER_ANL_5, ENTER_ANL_6, ENTER_ANL_7, ENTER_ANL_8, ENTER_ANL_9, ENTER_ANL_10 
 		FROM [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_ACNT] WHERE ACNT_CODE = '`+cuenta+`'`
 		rowsAver, err := conn.Query(query)
@@ -2243,7 +2310,9 @@ func (c *DameDimensionesDisponiblesSegunLaCuentaController) Post() {
 			var ENTER_ANL_10 int
 
 			rowsAver.Scan(&STATUS, &ENTER_ANL_1, &ENTER_ANL_2, &ENTER_ANL_3, &ENTER_ANL_4, &ENTER_ANL_5, &ENTER_ANL_6, &ENTER_ANL_7, &ENTER_ANL_8, &ENTER_ANL_9, &ENTER_ANL_10)
-			example := map[string]interface{}{ "success":1, "status" : STATUS, "D0" : ENTER_ANL_1, "D1" : ENTER_ANL_2, "D2" : ENTER_ANL_3, "D3" : ENTER_ANL_4, "D4" : ENTER_ANL_5, "D5" : ENTER_ANL_6, "D6" : ENTER_ANL_7, "D7" : ENTER_ANL_8, "D8" : ENTER_ANL_9, "D9" : ENTER_ANL_10 }
+			
+
+			example := map[string]interface{}{ "success":1, "tipoDimension" : tipoDimension, "status" : STATUS, "D0" : ENTER_ANL_1, "D1" : ENTER_ANL_2, "D2" : ENTER_ANL_3, "D3" : ENTER_ANL_4, "D4" : ENTER_ANL_5, "D5" : ENTER_ANL_6, "D6" : ENTER_ANL_7, "D7" : ENTER_ANL_8, "D8" : ENTER_ANL_9, "D9" : ENTER_ANL_10 }
 			c.Data["json"] = &example
 			c.ServeJSON()
 			return
@@ -4768,6 +4837,50 @@ func (c *ListaLineasTiposDeDiarioController) Post() {
 	}
 }
 
+
+func (c *ChecaOtrosCamposController) Post() {
+	alias := c.GetSession("alias")
+	if alias == nil{
+		return
+	}
+	tipoDeUsuario := c.GetSession("tipoDeUsuario")
+	if tienePermisosContador(tipoDeUsuario.(int)) {
+		BUNIT := c.GetSession("BUNIT")
+		connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
+		conn, err := sql.Open("mssql", connString2)
+		if err != nil {
+			log.Fatal("Open connection failed:", err.Error())
+		}
+		query := "SELECT idCampo, nombre, url FROM [SUNPLUSADV].[dbo].[zCampos] order by idCampo asc"
+		rows, err := conn.Query(query)
+		if err != nil {
+			example := map[string]interface{}{ "success" : 0 }
+			c.Data["json"] = &example
+			c.ServeJSON()
+		}
+		var idCampo int
+		var nombre string
+		var url string
+		models.ClearOtrosCampos()
+		var cedul  models.OtrosCampos
+        for rows.Next()  {
+			rows.Scan(&idCampo, &nombre, &url)
+			cedul = models.OtrosCampos{idCampo,nombre,url}
+			models.AddOtrosCampos(cedul, strconv.Itoa(idCampo) )
+		}
+		currentTime := int64(time.Now().Unix())
+		tm := time.Unix(currentTime, 0)
+		dateString := tm.String() 
+		substring := string(dateString[0:10])
+	   	byteArray := []byte(substring)
+		hasher := sha512.New()
+	    hasher.Write(byteArray)
+		cryptoText := base64.StdEncoding.EncodeToString(  []byte(hex.EncodeToString(hasher.Sum(nil))))
+		example := map[string]interface{}{ "success" : 1 , "otrosCampos": models.GetAllOtrosCampos(), "hash" : cryptoText, "BUNIT" : BUNIT.(string) }
+		c.Data["json"] = &example
+		c.ServeJSON()
+	}
+}
 func (c *ListaLineasCedulasController) Post() {
 	alias := c.GetSession("alias")
 	if alias == nil{
@@ -5445,6 +5558,49 @@ func (c *VeDetallePrimerNivelController) Post() {
 		c.ServeJSON()
 	}
 }
+
+
+
+func (c *GetConfigController) Post() {
+	alias := c.GetSession("alias")
+	if alias == nil{
+		return
+	}
+	tipoDeUsuario := c.GetSession("tipoDeUsuario")
+	if tienePermisosContador(tipoDeUsuario.(int)) {
+		BUNIT := c.GetSession("BUNIT")
+		connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
+		conn, err := sql.Open("mssql", connString2)
+		if err != nil {
+			log.Fatal("Open connection failed:", err.Error())
+		}
+	
+
+		query := `SELECT idConfig, Empresa, pass, tipoDimension FROM [SUNPLUSADV].[dbo].[zConfig] 
+		  WHERE BUNIT = '`+BUNIT.(string)+`'`
+		rows, err := conn.Query(query)
+		if err != nil {
+			fmt.Println(query)
+			panic(err)
+		}
+		var idConfig int
+		var Empresa string
+		var pass string
+		var tipoDimension int
+		example := map[string]interface{}{ "success" : 1,"idConfig":0, "Empresa": "", "pass" : "", "tipoDimension": 4}
+		if rows.Next()  {
+			rows.Scan(&idConfig, &Empresa, &pass, &tipoDimension)
+			uDec, errorx := base64.StdEncoding.DecodeString(pass)
+			if errorx != nil {
+				panic(errorx)
+			}
+			uDecS := string(uDec) 
+			example = map[string]interface{}{ "success" : 1,"idConfig":idConfig, "Empresa": Empresa, "pass" : uDecS, "tipoDimension": tipoDimension}
+		}
+		c.Data["json"] = &example
+		c.ServeJSON()
+	}
+}
 func (c *VeDetalleController) Post() {
 	alias := c.GetSession("alias")
 	if alias == nil{
@@ -5519,6 +5675,278 @@ func (c *VeDetalleController) Post() {
 		c.Data["json"] = &example
 		c.ServeJSON()
 	}
+}
+func (c *ListaActivosFijosController) Post() {
+	alias := c.GetSession("alias")
+	if alias == nil{
+		return
+	}
+	tipoDeUsuario := c.GetSession("tipoDeUsuario")
+	if tienePermisosContador(tipoDeUsuario.(int)) {
+		BUNIT := c.GetSession("BUNIT")
+		connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
+		conn, err := sql.Open("mssql", connString2)
+		if err != nil {
+			log.Fatal("Open connection failed:", err.Error())
+		}
+		query := "SELECT ASSET_CODE,STATUS,ASSET_STATUS,DESCR,START_PERD,END_PERD,LAST_PERD,DISPOSAL_PERD,DISPOSED,BASE_GROSS,BASE_DEP,BASE_NET,BASE_PCENT,TXN_GROSS,TXN_DEP,TXN_NET,TXN_PCENT FROM [SUNPLUSADV].[dbo].["+BUNIT.(string)+"_ASSET] order by ASSET_CODE asc"
+		rows, err := conn.Query(query)
+
+		var ASSET_CODE string
+		var STATUS int
+		var ASSET_STATUS int
+		var DESCR string
+		var START_PERIOD int
+		var END_PERIOD int
+		var ULTIMO_PERIOD int
+		var DISPOSAL_PERIOD int
+		var DISPOSED int
+		var BASE_GROSS float64
+		var BASE_DEP float64
+		var BASE_NET float64
+		var BASE_PCENT float64
+		var TXN_GROSS float64
+		var TXN_DEP float64
+		var TXN_NET float64
+		var TXN_PCENT float64
+		models.ClearActivosFijos()
+		var cedul  models.ActivoFijo
+        for rows.Next()  {
+			rows.Scan(&ASSET_CODE, &STATUS, &ASSET_STATUS, &DESCR, &START_PERIOD, &END_PERIOD, &ULTIMO_PERIOD, &DISPOSAL_PERIOD, &DISPOSED, &BASE_GROSS, &BASE_DEP, &BASE_NET, &BASE_PCENT,&TXN_GROSS, &TXN_DEP, &TXN_NET, &TXN_PCENT)
+			//fmt.Println(BASE_GROSS.Float64())
+		//	BASE_G := math.Abs(BASE_GROSS.Float64())
+			cedul = models.ActivoFijo{ASSET_CODE, STATUS, ASSET_STATUS, DESCR, START_PERIOD, END_PERIOD, ULTIMO_PERIOD, DISPOSAL_PERIOD, DISPOSED, BASE_GROSS, BASE_DEP, BASE_NET, BASE_PCENT,TXN_GROSS, TXN_DEP, TXN_NET, TXN_PCENT}
+			models.AddActivoFijo(cedul, ASSET_CODE )
+		}
+		example := map[string]interface{}{"success":1, "activos": models.GetAllActivosFijos() }
+		c.Data["json"] = &example
+		c.ServeJSON()
+	}
+	example := map[string]interface{}{ "success":0}
+	c.Data["json"] = &example
+	c.ServeJSON()
+}
+func (c *GenerarReporteDeMATController) Post() {
+	alias := c.GetSession("alias")
+	if alias == nil{
+		return
+	}
+	tipoDeUsuario := c.GetSession("tipoDeUsuario")
+	if tienePermisosContador(tipoDeUsuario.(int)) {
+		BUNIT := c.GetSession("BUNIT")
+		delPeriodo := c.GetString("delPeriodo")
+		alPeriodo := c.GetString("alPeriodo")
+		connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
+		conn, err := sql.Open("mssql", connString2)
+		if err != nil {
+			log.Fatal("Open connection failed:", err.Error())
+		}
+		query := "SELECT NAME, ANL_CODE FROM [SUNPLUSADV].[dbo].["+BUNIT.(string)+"_ANL_CODE] WHERE SUBSTRING(ANL_CODE,1,2) = 'ER' AND LEN(RTRIM(ANL_CODE)) = 9"
+		rows, err := conn.Query(query)
+		var Nombre string
+		var Codigo string
+		//var PeriodosList map[string]*PorPeriodo
+		models.ClearIglesias()
+		var cedul  models.Iglesias
+        for rows.Next()  {
+			rows.Scan(&Nombre, &Codigo)
+			Nombre = strings.TrimSpace(Nombre)
+			Codigo = strings.TrimSpace(Codigo)
+			cedul = models.Iglesias{Nombre,Codigo,make(map[string]*models.PorPeriodo)}
+			models.AddIglesias(cedul, Codigo)
+		}
+		query2 := `SELECT DISTINCT a.ACCNT_CODE, b.DESCR
+		  FROM [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_A_SALFLDG] a
+		  INNER JOIN [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_ACNT] b on b.ACNT_CODE = a.ACCNT_CODE
+		  WHERE SUBSTRING(ANAL_T6,1,2) = 'ER' AND PERIOD >= `+delPeriodo+` AND PERIOD <= `+alPeriodo+`
+		  order by a.ACCNT_CODE asc`
+		rows2, err2 := conn.Query(query2)
+		if err2 != nil {
+			fmt.Println(query2)
+			panic(err2)
+		}
+		var cuentaActual models.Cuenta
+	
+		var Cuenta string
+		var NCuenta string
+		models.ClearCuentas()
+		for rows2.Next()  {
+			rows2.Scan(&Cuenta, &NCuenta)
+			Cuenta = strings.TrimSpace(Cuenta)
+			NCuenta = strings.TrimSpace(NCuenta)
+			cuentaActual = models.Cuenta{Cuenta,NCuenta}
+			models.AddCuenta(cuentaActual, Cuenta)
+		}
+		models.ClearPeriodos()
+		var PERIODActual models.Periodo
+		
+
+		query1 := `SELECT a.ANAL_T6, a.ANAL_T9, b.DESCR, a.ACCNT_CODE, a.PERIOD, a.AMOUNT
+		  FROM [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_A_SALFLDG] a
+		  INNER JOIN [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_ACNT] b on b.ACNT_CODE = a.ACCNT_CODE
+		  WHERE SUBSTRING(ANAL_T6,1,2) = 'ER' AND PERIOD >= `+delPeriodo+` AND PERIOD <= `+alPeriodo+`
+		  order by PERIOD asc, a.ANAL_T3 asc`
+		rows1, err1 := conn.Query(query1)
+		if err1 != nil {
+			fmt.Println(query1)
+			panic(err1)
+		}
+		var ORG_ID string
+		var FNCT string
+		var DESCR string
+		var ACNT_CODE string
+		var PERIOD int
+		var AMOUNT decimal.Dec
+		var iglesiaActual models.Iglesias
+		for rows1.Next()  {
+			rows1.Scan(&ORG_ID, &FNCT, &DESCR, &ACNT_CODE, &PERIOD, &AMOUNT)
+			ORG_ID = strings.TrimSpace(ORG_ID)
+			FNCT = strings.TrimSpace(FNCT)
+			DESCR = strings.TrimSpace(DESCR)
+			ACNT_CODE = strings.TrimSpace(ACNT_CODE)
+			amountPrima := AMOUNT.Float64()
+			iglesiaActual = models.DameIglesiaPorCodigo(ORG_ID)
+			PERIODString := strconv.Itoa(PERIOD)
+			PERIODActual = models.Periodo{PERIODString}
+			models.AddPeriodo(PERIODActual, PERIODString)
+			if _, ok := iglesiaActual.PeriodosList[PERIODString]; ok {
+				} else {
+				var PERIODM models.PorPeriodo
+				PERIODM = models.PorPeriodo{PERIOD, FNCT, make(map[string]*models.PorCuenta) }
+				iglesiaActual.PeriodosList[PERIODString] = &PERIODM
+			}
+			iglesiaActual.PeriodosList[PERIODString].PERIOD = PERIOD
+			if Compare(FNCT,"") != 0 {
+				iglesiaActual.PeriodosList[PERIODString].Distrito = FNCT
+			}
+			if _, ok := iglesiaActual.PeriodosList[PERIODString].CuentasList[ACNT_CODE]; ok {
+			} else {
+				var Cuenta models.PorCuenta
+				Cuenta = models.PorCuenta{ACNT_CODE,0.0,DESCR}
+				iglesiaActual.PeriodosList[PERIODString].CuentasList[ACNT_CODE] = &Cuenta
+
+			}
+			iglesiaActual.PeriodosList[PERIODString].CuentasList[ACNT_CODE].Saldo += amountPrima	
+		}
+		example := map[string]interface{}{ "success" : 1 , "diezmos": models.GetAllIglesias(), "cuentas" : models.GetAllCuentas(), "periodos" : models.GetAllPeriodos() }
+		c.Data["json"] = &example
+		c.ServeJSON()
+		return
+	}
+	example := map[string]interface{}{ "success" : 0 }
+	c.Data["json"] = &example
+	c.ServeJSON()
+}
+func (c *GenerarReporteDeIglesiasController) Post() {
+	alias := c.GetSession("alias")
+	if alias == nil{
+		return
+	}
+	tipoDeUsuario := c.GetSession("tipoDeUsuario")
+	if tienePermisosContador(tipoDeUsuario.(int)) {
+		BUNIT := c.GetSession("BUNIT")
+		delPeriodo := c.GetString("delPeriodo")
+		alPeriodo := c.GetString("alPeriodo")
+		connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
+		conn, err := sql.Open("mssql", connString2)
+		if err != nil {
+			log.Fatal("Open connection failed:", err.Error())
+		}
+		query := "SELECT NAME, ANL_CODE FROM [SUNPLUSADV].[dbo].["+BUNIT.(string)+"_ANL_CODE] WHERE SUBSTRING(ANL_CODE,1,1) = 'T'"
+		rows, err := conn.Query(query)
+		var Nombre string
+		var Codigo string
+		//var PeriodosList map[string]*PorPeriodo
+		models.ClearIglesias()
+		var cedul  models.Iglesias
+        for rows.Next()  {
+			rows.Scan(&Nombre, &Codigo)
+			Nombre = strings.TrimSpace(Nombre)
+			Codigo = strings.TrimSpace(Codigo)
+			cedul = models.Iglesias{Nombre,Codigo,make(map[string]*models.PorPeriodo)}
+			models.AddIglesias(cedul, Codigo)
+		}
+		query2 := `SELECT DISTINCT a.ACCNT_CODE, b.DESCR
+		  FROM [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_A_SALFLDG] a
+		  INNER JOIN [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_ACNT] b on b.ACNT_CODE = a.ACCNT_CODE
+		  WHERE SUBSTRING(ANAL_T5,1,1) = 'T' AND PERIOD >= `+delPeriodo+` AND PERIOD <= `+alPeriodo+`
+		  order by a.ACCNT_CODE asc`
+		rows2, err2 := conn.Query(query2)
+		if err2 != nil {
+			fmt.Println(query2)
+			panic(err2)
+		}
+		var cuentaActual models.Cuenta
+	
+		var Cuenta string
+		var NCuenta string
+		models.ClearCuentas()
+		for rows2.Next()  {
+			rows2.Scan(&Cuenta, &NCuenta)
+			Cuenta = strings.TrimSpace(Cuenta)
+			NCuenta = strings.TrimSpace(NCuenta)
+			cuentaActual = models.Cuenta{Cuenta,NCuenta}
+			models.AddCuenta(cuentaActual, Cuenta)
+		}
+		models.ClearPeriodos()
+		var PERIODActual models.Periodo
+		
+
+		query1 := `SELECT a.ANAL_T5, a.ANAL_T3, b.DESCR, a.ACCNT_CODE, a.PERIOD, a.AMOUNT
+		  FROM [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_A_SALFLDG] a
+		  INNER JOIN [SUNPLUSADV].[dbo].[`+BUNIT.(string)+`_ACNT] b on b.ACNT_CODE = a.ACCNT_CODE
+		  WHERE SUBSTRING(ANAL_T5,1,1) = 'T' AND PERIOD >= `+delPeriodo+` AND PERIOD <= `+alPeriodo+`
+		  order by PERIOD asc, a.ANAL_T3 asc, a.ANAL_T5 asc`
+		rows1, err1 := conn.Query(query1)
+		if err1 != nil {
+			fmt.Println(query1)
+			panic(err1)
+		}
+		var ORG_ID string
+		var FNCT string
+		var DESCR string
+		var ACNT_CODE string
+		var PERIOD int
+		var AMOUNT decimal.Dec
+		var iglesiaActual models.Iglesias
+		for rows1.Next()  {
+			rows1.Scan(&ORG_ID, &FNCT, &DESCR, &ACNT_CODE, &PERIOD, &AMOUNT)
+			ORG_ID = strings.TrimSpace(ORG_ID)
+			FNCT = strings.TrimSpace(FNCT)
+			DESCR = strings.TrimSpace(DESCR)
+			ACNT_CODE = strings.TrimSpace(ACNT_CODE)
+			amountPrima := AMOUNT.Float64()
+			iglesiaActual = models.DameIglesiaPorCodigo(ORG_ID)
+			PERIODString := strconv.Itoa(PERIOD)
+			PERIODActual = models.Periodo{PERIODString}
+			models.AddPeriodo(PERIODActual, PERIODString)
+			if _, ok := iglesiaActual.PeriodosList[PERIODString]; ok {
+				} else {
+				var PERIODM models.PorPeriodo
+				PERIODM = models.PorPeriodo{PERIOD, FNCT, make(map[string]*models.PorCuenta) }
+				iglesiaActual.PeriodosList[PERIODString] = &PERIODM
+			}
+			iglesiaActual.PeriodosList[PERIODString].PERIOD = PERIOD
+			if Compare(FNCT,"") != 0 {
+				iglesiaActual.PeriodosList[PERIODString].Distrito = FNCT
+			}
+			if _, ok := iglesiaActual.PeriodosList[PERIODString].CuentasList[ACNT_CODE]; ok {
+			} else {
+				var Cuenta models.PorCuenta
+				Cuenta = models.PorCuenta{ACNT_CODE,0.0,DESCR}
+				iglesiaActual.PeriodosList[PERIODString].CuentasList[ACNT_CODE] = &Cuenta
+
+			}
+			iglesiaActual.PeriodosList[PERIODString].CuentasList[ACNT_CODE].Saldo += amountPrima	
+		}
+		example := map[string]interface{}{ "success" : 1 , "diezmos": models.GetAllIglesias(), "cuentas" : models.GetAllCuentas(), "periodos" : models.GetAllPeriodos() }
+		c.Data["json"] = &example
+		c.ServeJSON()
+		return
+	}
+	example := map[string]interface{}{ "success" : 0 }
+	c.Data["json"] = &example
+	c.ServeJSON()
 }
 func (c *ListaTiposDeDiarioController) Post() {
 	alias := c.GetSession("alias")
@@ -6035,7 +6463,7 @@ func (c *LoginController) Post() {
 	passwordPrimo := []byte(password)
 	hasher := sha512.New()
     hasher.Write(passwordPrimo)
-	cryptoText := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	cryptoText := base64.StdEncoding.EncodeToString(hasher.Sum(nil))
 	flag.Parse() // parse the command line args
 	connString2 := "Database="+beego.AppConfig.String("mssqldb")+";Data Source="+beego.AppConfig.String("mssqlurls")+";Integrated Security=False;User ID="+beego.AppConfig.String("mssqluser")+";Password="+beego.AppConfig.String("mssqlpass")+";connect timeout = 1000; encrypt=disable;";
 	conn, err := sql.Open("mssql", connString2)

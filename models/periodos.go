@@ -14,3 +14,6 @@ func AddPeriodo(u Periodo, index string)  {
 func GetAllPeriodos() map[string]*Periodo {
 	return PeriodosList
 }
+func ClearPeriodos() {
+	PeriodosList = make(map[string]*Periodo)
+}
